@@ -1,0 +1,55 @@
+from __future__ import annotations
+
+import uuid
+from datetime import datetime
+
+from pydantic import Field
+
+from app.schemas.common import ORMModel, StrictModel
+
+
+class CustomerCreate(StrictModel):
+    name: str = Field(min_length=2, max_length=120)
+    phone: str = Field(min_length=8, max_length=30)
+    address: str | None = Field(default=None, max_length=255)
+    notes: str | None = None
+
+
+class CustomerUpdate(StrictModel):
+    name: str | None = Field(default=None, min_length=2, max_length=120)
+    phone: str | None = Field(default=None, min_length=8, max_length=30)
+    address: str | None = Field(default=None, max_length=255)
+    notes: str | None = None
+
+
+class CustomerRead(ORMModel):
+    id: uuid.UUID
+    name: str
+    phone: str
+    address: str | None
+    notes: str | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class CustomerPurchaseSummary(StrictModel):
+    piano_id: uuid.UUID
+    piano_name: str
+    serial_number: str
+    sale_date: str
+    warranty_end_date: str | None
+    warranty_status: str | None
+
+
+class CustomerServiceSummary(StrictModel):
+    piano_name: str
+    service_date: str
+    service_type: str
+    next_service_date: str | None
+    status: str
+
+
+class CustomerProfile(StrictModel):
+    customer: CustomerRead
+    purchases: list[CustomerPurchaseSummary]
+    services: list[CustomerServiceSummary]

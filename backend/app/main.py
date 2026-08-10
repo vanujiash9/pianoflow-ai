@@ -1,0 +1,64 @@
+from __future__ import annotations
+
+from contextlib import asynccontextmanager
+
+from fastapi import FastAPI, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+import app.models  # noqa: F401
+from app.api.router import api_router
+from app.core.config import get_settings
+from app.core.database import Base, engine
+from app.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
+
+settings = get_settings()
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    if settings.auto_create_tables:
+        Base.metadata.create_all(bind=engine)
+    yield
+
+
+app = FastAPI(
+    title=settings.app_name,
+    version="0.1.0",
+    description=(
+        "Piano shop customer, inventory, warranty, maintenance and AI assistant API. "
+        "Use Swagger to test each endpoint."
+    ),
+    lifespan=lifespan,
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.exception_handler(NotFoundError)
+def handle_not_found(_: Request, exc: NotFoundError) -> JSONResponse:
+    return JSONResponse(status_code=status.HTTP_404_NOT_FOUND, content={"detail": str(exc)})
+
+
+@app.exception_handler(ConflictError)
+def handle_conflict(_: Request, exc: ConflictError) -> JSONResponse:
+    return JSONResponse(status_code=status.HTTP_409_CONFLICT, content={"detail": str(exc)})
+
+
+@app.exception_handler(BusinessRuleError)
+def handle_business_rule(_: Request, exc: BusinessRuleError) -> JSONResponse:
+    return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content={"detail": str(exc)})
+
+
+app.include_router(api_router, prefix=settings.api_v1_prefix)
+
+
+@app.get("/", include_in_schema=False)
+def root() -> dict[str, str]:
+    return {"message": "PianoFlow API", "docs": "/docs"}

@@ -1,0 +1,206 @@
+from __future__ import annotations
+
+from datetime import date
+from decimal import Decimal
+
+
+def create_customer(client, phone="0909000001"):
+    response = client.post(
+        "/api/v1/customers",
+        json={"name": "Khách Test", "phone": phone, "address": "TP.HCM", "notes": None},
+    )
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def create_piano(client, serial="TEST-001", **overrides):
+    payload = {
+        "brand": "Kawai",
+        "model": "KL-901",
+        "serial_number": serial,
+        "piano_type": "upright",
+        "size_cm": 121,
+        "pedal_count": 3,
+        "purchase_price": "120000000",
+        "retail_price": "180000000",
+        "status": "available",
+        "quantity": 1,
+        "variant": "Màu đen",
+        "arrival_date": date(2026, 8, 10).isoformat(),
+        "color": "Đen",
+        "condition": "used",
+        "notes": None,
+    }
+    payload.update(overrides)
+    response = client.post("/api/v1/pianos", json=payload)
+    assert response.status_code == 201, response.text
+    return response.json()
+
+
+def test_health(client):
+    response = client.get("/api/v1/health")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok"}
+
+
+def test_customer_create_and_search(client):
+    customer = create_customer(client)
+    response = client.get("/api/v1/customers", params={"search": "0909"})
+    assert response.status_code == 200
+    assert response.json()[0]["id"] == customer["id"]
+
+
+def test_piano_create_and_read_inventory_fields(client):
+    piano = create_piano(client)
+    assert piano["piano_type"] == "upright"
+    assert piano["serial_number"] == "TEST-001"
+    assert piano["purchase_price"] == "120000000.00"
+    assert piano["retail_price"] == "180000000.00"
+    assert piano["quantity"] == 1
+    assert piano["arrival_date"] == "2026-08-10"
+
+    response = client.get(f"/api/v1/pianos/{piano['id']}")
+    assert response.status_code == 200
+    body = response.json()
+    assert body["brand"] == "Kawai"
+    assert body["piano_type"] == "upright"
+    assert body["purchase_price"] == "120000000.00"
+
+
+def test_piano_allows_null_serial_for_digital_stock(client):
+    piano = create_piano(
+        client,
+        serial=None,
+        piano_type="digital",
+        quantity=3,
+        serial_number=None,
+        status="incoming",
+    )
+    assert piano["serial_number"] is None
+    assert piano["piano_type"] == "digital"
+    assert piano["quantity"] == 3
+    assert piano["status"] == "incoming"
+
+
+def test_piano_rejects_invalid_inventory_values(client):
+    response = client.post(
+        "/api/v1/pianos",
+        json={
+            "brand": "Kawai",
+            "model": "KL-901",
+            "serial_number": None,
+            "piano_type": "digital",
+            "size_cm": -1,
+            "pedal_count": -1,
+            "purchase_price": "-1",
+            "retail_price": "-1",
+            "status": "available",
+            "quantity": 0,
+            "variant": None,
+            "arrival_date": None,
+            "color": None,
+            "condition": "used",
+            "notes": None,
+        },
+    )
+    assert response.status_code == 422
+
+
+def test_piano_update_allows_new_fields(client):
+    piano = create_piano(client)
+    response = client.patch(
+        f"/api/v1/pianos/{piano['id']}",
+        json={
+            "piano_type": "grand",
+            "size_cm": 155,
+            "pedal_count": 3,
+            "purchase_price": "200000000",
+            "retail_price": "320000000",
+            "status": "paused",
+            "quantity": 2,
+            "variant": "Limited",
+            "arrival_date": "2026-09-01",
+            "serial_number": None,
+        },
+    )
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["piano_type"] == "grand"
+    assert body["status"] == "paused"
+    assert body["serial_number"] is None
+    assert body["purchase_price"] == "200000000.00"
+    assert body["quantity"] == 2
+
+
+def test_sale_marks_serialized_piano_sold_and_creates_warranty(client):
+    customer = create_customer(client)
+    piano = create_piano(client)
+
+    response = client.post(
+        "/api/v1/sales",
+        json={
+            "customer_id": customer["id"],
+            "piano_id": piano["id"],
+            "sale_date": date.today().isoformat(),
+            "warranty_months": 12,
+            "notes": "test",
+        },
+    )
+    assert response.status_code == 201, response.text
+    assert response.json()["warranty_end_date"] is not None
+
+    piano_response = client.get(f"/api/v1/pianos/{piano['id']}")
+    assert piano_response.json()["status"] == "sold"
+
+    warranties = client.get("/api/v1/warranties").json()
+    assert len(warranties) == 1
+    assert warranties[0]["customer_id"] == customer["id"]
+
+
+def test_sale_decrements_non_serialized_stock(client):
+    customer = create_customer(client, phone="0909000002")
+    piano = create_piano(
+        client,
+        serial=None,
+        serial_number=None,
+        piano_type="digital",
+        quantity=2,
+        status="available",
+    )
+
+    response = client.post(
+        "/api/v1/sales",
+        json={
+            "customer_id": customer["id"],
+            "piano_id": piano["id"],
+            "sale_date": date.today().isoformat(),
+            "warranty_months": 12,
+            "notes": None,
+        },
+    )
+    assert response.status_code == 201, response.text
+
+    piano_response = client.get(f"/api/v1/pianos/{piano['id']}")
+    body = piano_response.json()
+    assert body["quantity"] == 1
+    assert body["status"] == "available"
+
+
+def test_dashboard_uses_operational_metrics(client):
+    create_customer(client)
+    create_piano(client)
+    response = client.get("/api/v1/dashboard")
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["kpis"]["available_pianos"] == 1
+    assert body["kpis"]["total_customers"] == 1
+
+
+def test_ai_endpoint_is_safe_when_llm_is_disabled(client):
+    response = client.post(
+        "/api/v1/ai/chat",
+        json={"message": "Khách nào cần chú ý?", "conversation_id": None},
+    )
+    assert response.status_code == 200, response.text
+    assert response.json()["mode"] == "disabled"
+    assert response.json()["conversation_id"]

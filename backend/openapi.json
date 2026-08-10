@@ -1,0 +1,2727 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "PianoFlow API",
+    "description": "Piano shop customer, inventory, warranty, maintenance and AI assistant API. Use Swagger to test each endpoint.",
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/api/v1/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health",
+        "operationId": "health_api_v1_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "type": "object",
+                  "title": "Response Health Api V1 Health Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/dashboard": {
+      "get": {
+        "tags": [
+          "Dashboard"
+        ],
+        "summary": "Get Dashboard",
+        "operationId": "get_dashboard_api_v1_dashboard_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DashboardRead"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customers": {
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "List Customers",
+        "operationId": "list_customers_api_v1_customers_get",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CustomerRead"
+                  },
+                  "title": "Response List Customers Api V1 Customers Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "Create Customer",
+        "operationId": "create_customer_api_v1_customers_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customers/{customer_id}": {
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "Get Customer",
+        "operationId": "get_customer_api_v1_customers__customer_id__get",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Customer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "Update Customer",
+        "operationId": "update_customer_api_v1_customers__customer_id__patch",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Customer Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CustomerUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/customers/{customer_id}/profile": {
+      "get": {
+        "tags": [
+          "Customers"
+        ],
+        "summary": "Get Customer Profile",
+        "operationId": "get_customer_profile_api_v1_customers__customer_id__profile_get",
+        "parameters": [
+          {
+            "name": "customer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Customer Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CustomerProfile"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pianos": {
+      "get": {
+        "tags": [
+          "Pianos"
+        ],
+        "summary": "List Pianos",
+        "operationId": "list_pianos_api_v1_pianos_get",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/PianoStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/PianoRead"
+                  },
+                  "title": "Response List Pianos Api V1 Pianos Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Pianos"
+        ],
+        "summary": "Create Piano",
+        "operationId": "create_piano_api_v1_pianos_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PianoCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PianoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/pianos/{piano_id}": {
+      "get": {
+        "tags": [
+          "Pianos"
+        ],
+        "summary": "Get Piano",
+        "operationId": "get_piano_api_v1_pianos__piano_id__get",
+        "parameters": [
+          {
+            "name": "piano_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Piano Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PianoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "Pianos"
+        ],
+        "summary": "Update Piano",
+        "operationId": "update_piano_api_v1_pianos__piano_id__patch",
+        "parameters": [
+          {
+            "name": "piano_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Piano Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PianoUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PianoRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/sales": {
+      "get": {
+        "tags": [
+          "Sales"
+        ],
+        "summary": "List Sales",
+        "operationId": "list_sales_api_v1_sales_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/SaleDetail"
+                  },
+                  "type": "array",
+                  "title": "Response List Sales Api V1 Sales Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Sales"
+        ],
+        "summary": "Create Sale",
+        "operationId": "create_sale_api_v1_sales_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SaleCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SaleDetail"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/warranties": {
+      "get": {
+        "tags": [
+          "Warranties"
+        ],
+        "summary": "List Warranties",
+        "operationId": "list_warranties_api_v1_warranties_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/WarrantyDetail"
+                  },
+                  "type": "array",
+                  "title": "Response List Warranties Api V1 Warranties Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/warranties/expiring": {
+      "get": {
+        "tags": [
+          "Warranties"
+        ],
+        "summary": "Expiring Warranties",
+        "operationId": "expiring_warranties_api_v1_warranties_expiring_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "default": 30,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WarrantyDetail"
+                  },
+                  "title": "Response Expiring Warranties Api V1 Warranties Expiring Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/services": {
+      "get": {
+        "tags": [
+          "Maintenance"
+        ],
+        "summary": "List Services",
+        "operationId": "list_services_api_v1_services_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceRecordDetail"
+                  },
+                  "type": "array",
+                  "title": "Response List Services Api V1 Services Get"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Maintenance"
+        ],
+        "summary": "Create Service",
+        "operationId": "create_service_api_v1_services_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceRecordCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRecordRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/services/due": {
+      "get": {
+        "tags": [
+          "Maintenance"
+        ],
+        "summary": "Due Services",
+        "operationId": "due_services_api_v1_services_due_get",
+        "parameters": [
+          {
+            "name": "days",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "maximum": 365,
+              "minimum": 1,
+              "default": 30,
+              "title": "Days"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ServiceRecordDetail"
+                  },
+                  "title": "Response Due Services Api V1 Services Due Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/services/{record_id}": {
+      "patch": {
+        "tags": [
+          "Maintenance"
+        ],
+        "summary": "Update Service",
+        "operationId": "update_service_api_v1_services__record_id__patch",
+        "parameters": [
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Record Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ServiceRecordUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ServiceRecordRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/leads": {
+      "get": {
+        "tags": [
+          "Leads"
+        ],
+        "summary": "List Leads",
+        "operationId": "list_leads_api_v1_leads_get",
+        "parameters": [
+          {
+            "name": "search",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "maxLength": 120
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Search"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/LeadRead"
+                  },
+                  "title": "Response List Leads Api V1 Leads Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Leads"
+        ],
+        "summary": "Create Lead",
+        "operationId": "create_lead_api_v1_leads_post",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeadCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/leads/{lead_id}": {
+      "patch": {
+        "tags": [
+          "Leads"
+        ],
+        "summary": "Update Lead",
+        "operationId": "update_lead_api_v1_leads__lead_id__patch",
+        "parameters": [
+          {
+            "name": "lead_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Lead Id"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LeadUpdate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LeadRead"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/ai/chat": {
+      "post": {
+        "tags": [
+          "AI Assistant"
+        ],
+        "summary": "Chat",
+        "operationId": "chat_api_v1_ai_chat_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AIChatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AIChatResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AIChatRequest": {
+        "properties": {
+          "message": {
+            "type": "string",
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Message"
+          },
+          "conversation_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Conversation Id"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "AIChatRequest"
+      },
+      "AIChatResponse": {
+        "properties": {
+          "conversation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Conversation Id"
+          },
+          "answer": {
+            "type": "string",
+            "title": "Answer"
+          },
+          "tool_calls": {
+            "items": {
+              "type": "string"
+            },
+            "type": "array",
+            "title": "Tool Calls"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "mode": {
+            "type": "string",
+            "title": "Mode"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "conversation_id",
+          "answer",
+          "tool_calls",
+          "model",
+          "mode"
+        ],
+        "title": "AIChatResponse"
+      },
+      "AttentionItem": {
+        "properties": {
+          "type": {
+            "type": "string",
+            "title": "Type"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "subtitle": {
+            "type": "string",
+            "title": "Subtitle"
+          },
+          "due_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due Date"
+          },
+          "priority": {
+            "type": "string",
+            "title": "Priority"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "type",
+          "title",
+          "subtitle",
+          "due_date",
+          "priority"
+        ],
+        "title": "AttentionItem"
+      },
+      "CustomerCreate": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Name"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 8,
+            "title": "Phone"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "phone"
+        ],
+        "title": "CustomerCreate"
+      },
+      "CustomerProfile": {
+        "properties": {
+          "customer": {
+            "$ref": "#/components/schemas/CustomerRead"
+          },
+          "purchases": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerPurchaseSummary"
+            },
+            "type": "array",
+            "title": "Purchases"
+          },
+          "services": {
+            "items": {
+              "$ref": "#/components/schemas/CustomerServiceSummary"
+            },
+            "type": "array",
+            "title": "Services"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "customer",
+          "purchases",
+          "services"
+        ],
+        "title": "CustomerProfile"
+      },
+      "CustomerPurchaseSummary": {
+        "properties": {
+          "piano_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Piano Id"
+          },
+          "piano_name": {
+            "type": "string",
+            "title": "Piano Name"
+          },
+          "serial_number": {
+            "type": "string",
+            "title": "Serial Number"
+          },
+          "sale_date": {
+            "type": "string",
+            "title": "Sale Date"
+          },
+          "warranty_end_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warranty End Date"
+          },
+          "warranty_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warranty Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "piano_id",
+          "piano_name",
+          "serial_number",
+          "sale_date",
+          "warranty_end_date",
+          "warranty_status"
+        ],
+        "title": "CustomerPurchaseSummary"
+      },
+      "CustomerRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "name",
+          "phone",
+          "address",
+          "notes",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "CustomerRead"
+      },
+      "CustomerServiceSummary": {
+        "properties": {
+          "piano_name": {
+            "type": "string",
+            "title": "Piano Name"
+          },
+          "service_date": {
+            "type": "string",
+            "title": "Service Date"
+          },
+          "service_type": {
+            "type": "string",
+            "title": "Service Type"
+          },
+          "next_service_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Service Date"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "piano_name",
+          "service_date",
+          "service_type",
+          "next_service_date",
+          "status"
+        ],
+        "title": "CustomerServiceSummary"
+      },
+      "CustomerUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30,
+                "minLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "address": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 255
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Address"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "CustomerUpdate"
+      },
+      "DashboardKPI": {
+        "properties": {
+          "available_pianos": {
+            "type": "integer",
+            "title": "Available Pianos"
+          },
+          "sold_this_month": {
+            "type": "integer",
+            "title": "Sold This Month"
+          },
+          "total_customers": {
+            "type": "integer",
+            "title": "Total Customers"
+          },
+          "action_items": {
+            "type": "integer",
+            "title": "Action Items"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "available_pianos",
+          "sold_this_month",
+          "total_customers",
+          "action_items"
+        ],
+        "title": "DashboardKPI"
+      },
+      "DashboardRead": {
+        "properties": {
+          "kpis": {
+            "$ref": "#/components/schemas/DashboardKPI"
+          },
+          "sales_by_month": {
+            "items": {
+              "$ref": "#/components/schemas/MonthlySalesPoint"
+            },
+            "type": "array",
+            "title": "Sales By Month"
+          },
+          "attention_items": {
+            "items": {
+              "$ref": "#/components/schemas/AttentionItem"
+            },
+            "type": "array",
+            "title": "Attention Items"
+          },
+          "recent_customers": {
+            "items": {
+              "$ref": "#/components/schemas/RecentCustomer"
+            },
+            "type": "array",
+            "title": "Recent Customers"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "kpis",
+          "sales_by_month",
+          "attention_items",
+          "recent_customers"
+        ],
+        "title": "DashboardRead"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LeadCreate": {
+        "properties": {
+          "customer_name": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Customer Name"
+          },
+          "phone": {
+            "type": "string",
+            "maxLength": 30,
+            "minLength": 8,
+            "title": "Phone"
+          },
+          "budget_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Min"
+          },
+          "budget_max": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Max"
+          },
+          "interested_brand": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interested Brand"
+          },
+          "interested_model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interested Model"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LeadStatus",
+            "default": "new"
+          },
+          "follow_up_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up Date"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "customer_name",
+          "phone"
+        ],
+        "title": "LeadCreate"
+      },
+      "LeadRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "customer_name": {
+            "type": "string",
+            "title": "Customer Name"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          },
+          "budget_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Min"
+          },
+          "budget_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Max"
+          },
+          "interested_brand": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interested Brand"
+          },
+          "interested_model": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interested Model"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LeadStatus"
+          },
+          "follow_up_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up Date"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "customer_name",
+          "phone",
+          "budget_min",
+          "budget_max",
+          "interested_brand",
+          "interested_model",
+          "status",
+          "follow_up_date",
+          "notes",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "LeadRead"
+      },
+      "LeadStatus": {
+        "type": "string",
+        "enum": [
+          "new",
+          "contacted",
+          "visited",
+          "considering",
+          "won",
+          "lost"
+        ],
+        "title": "LeadStatus"
+      },
+      "LeadUpdate": {
+        "properties": {
+          "customer_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Customer Name"
+          },
+          "phone": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 30,
+                "minLength": 8
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Phone"
+          },
+          "budget_min": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Min"
+          },
+          "budget_max": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "minimum": 0.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Budget Max"
+          },
+          "interested_brand": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interested Brand"
+          },
+          "interested_model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Interested Model"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LeadStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "follow_up_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Follow Up Date"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "LeadUpdate"
+      },
+      "MonthlySalesPoint": {
+        "properties": {
+          "month": {
+            "type": "string",
+            "title": "Month"
+          },
+          "count": {
+            "type": "integer",
+            "title": "Count"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "month",
+          "count"
+        ],
+        "title": "MonthlySalesPoint"
+      },
+      "PianoCondition": {
+        "type": "string",
+        "enum": [
+          "new",
+          "used"
+        ],
+        "title": "PianoCondition"
+      },
+      "PianoCreate": {
+        "properties": {
+          "brand": {
+            "type": "string",
+            "maxLength": 80,
+            "minLength": 1,
+            "title": "Brand"
+          },
+          "model": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Model"
+          },
+          "serial_number": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 2,
+            "title": "Serial Number"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2100.0,
+                "minimum": 1850.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/PianoCondition",
+            "default": "used"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PianoStatus",
+            "default": "available"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "brand",
+          "model",
+          "serial_number"
+        ],
+        "title": "PianoCreate"
+      },
+      "PianoRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "brand": {
+            "type": "string",
+            "title": "Brand"
+          },
+          "model": {
+            "type": "string",
+            "title": "Model"
+          },
+          "serial_number": {
+            "type": "string",
+            "title": "Serial Number"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "condition": {
+            "$ref": "#/components/schemas/PianoCondition"
+          },
+          "status": {
+            "$ref": "#/components/schemas/PianoStatus"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "brand",
+          "model",
+          "serial_number",
+          "year",
+          "color",
+          "condition",
+          "status",
+          "notes",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "PianoRead"
+      },
+      "PianoStatus": {
+        "type": "string",
+        "enum": [
+          "available",
+          "reserved",
+          "sold",
+          "service"
+        ],
+        "title": "PianoStatus"
+      },
+      "PianoUpdate": {
+        "properties": {
+          "brand": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 80,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brand"
+          },
+          "model": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Model"
+          },
+          "serial_number": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 120,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Serial Number"
+          },
+          "year": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "maximum": 2100.0,
+                "minimum": 1850.0
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Year"
+          },
+          "color": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 60
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Color"
+          },
+          "condition": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PianoCondition"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PianoStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "PianoUpdate"
+      },
+      "RecentCustomer": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "phone": {
+            "type": "string",
+            "title": "Phone"
+          },
+          "last_piano": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Piano"
+          },
+          "last_purchase_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Purchase Date"
+          },
+          "warranty_status": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warranty Status"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "name",
+          "phone",
+          "last_piano",
+          "last_purchase_date",
+          "warranty_status"
+        ],
+        "title": "RecentCustomer"
+      },
+      "SaleCreate": {
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Customer Id"
+          },
+          "piano_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Piano Id"
+          },
+          "sale_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Sale Date"
+          },
+          "warranty_months": {
+            "type": "integer",
+            "maximum": 120.0,
+            "minimum": 0.0,
+            "title": "Warranty Months",
+            "default": 12
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "customer_id",
+          "piano_id",
+          "sale_date"
+        ],
+        "title": "SaleCreate"
+      },
+      "SaleDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "customer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Customer Id"
+          },
+          "customer_name": {
+            "type": "string",
+            "title": "Customer Name"
+          },
+          "customer_phone": {
+            "type": "string",
+            "title": "Customer Phone"
+          },
+          "piano_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Piano Id"
+          },
+          "piano_name": {
+            "type": "string",
+            "title": "Piano Name"
+          },
+          "serial_number": {
+            "type": "string",
+            "title": "Serial Number"
+          },
+          "sale_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Sale Date"
+          },
+          "warranty_end_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Warranty End Date"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "customer_id",
+          "customer_name",
+          "customer_phone",
+          "piano_id",
+          "piano_name",
+          "serial_number",
+          "sale_date",
+          "warranty_end_date",
+          "notes"
+        ],
+        "title": "SaleDetail"
+      },
+      "ServiceRecordCreate": {
+        "properties": {
+          "customer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Customer Id"
+          },
+          "piano_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Piano Id"
+          },
+          "service_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Service Date"
+          },
+          "service_type": {
+            "type": "string",
+            "maxLength": 100,
+            "minLength": 2,
+            "title": "Service Type"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "next_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Service Date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ServiceStatus",
+            "default": "scheduled"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "customer_id",
+          "piano_id",
+          "service_date",
+          "service_type"
+        ],
+        "title": "ServiceRecordCreate"
+      },
+      "ServiceRecordDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "customer_name": {
+            "type": "string",
+            "title": "Customer Name"
+          },
+          "customer_phone": {
+            "type": "string",
+            "title": "Customer Phone"
+          },
+          "piano_name": {
+            "type": "string",
+            "title": "Piano Name"
+          },
+          "serial_number": {
+            "type": "string",
+            "title": "Serial Number"
+          },
+          "service_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Service Date"
+          },
+          "service_type": {
+            "type": "string",
+            "title": "Service Type"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "next_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Service Date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ServiceStatus"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "customer_name",
+          "customer_phone",
+          "piano_name",
+          "serial_number",
+          "service_date",
+          "service_type",
+          "description",
+          "next_service_date",
+          "status",
+          "notes"
+        ],
+        "title": "ServiceRecordDetail"
+      },
+      "ServiceRecordRead": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "customer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Customer Id"
+          },
+          "piano_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Piano Id"
+          },
+          "service_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Service Date"
+          },
+          "service_type": {
+            "type": "string",
+            "title": "Service Type"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "next_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Service Date"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ServiceStatus"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "customer_id",
+          "piano_id",
+          "service_date",
+          "service_type",
+          "description",
+          "next_service_date",
+          "status",
+          "notes",
+          "created_at"
+        ],
+        "title": "ServiceRecordRead"
+      },
+      "ServiceRecordUpdate": {
+        "properties": {
+          "service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Date"
+          },
+          "service_type": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 100,
+                "minLength": 2
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Service Type"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "next_service_date": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Service Date"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ServiceStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "title": "ServiceRecordUpdate"
+      },
+      "ServiceStatus": {
+        "type": "string",
+        "enum": [
+          "scheduled",
+          "in_progress",
+          "completed",
+          "cancelled"
+        ],
+        "title": "ServiceStatus"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      },
+      "WarrantyDetail": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "sale_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Sale Id"
+          },
+          "customer_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Customer Id"
+          },
+          "customer_name": {
+            "type": "string",
+            "title": "Customer Name"
+          },
+          "customer_phone": {
+            "type": "string",
+            "title": "Customer Phone"
+          },
+          "piano_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Piano Id"
+          },
+          "piano_name": {
+            "type": "string",
+            "title": "Piano Name"
+          },
+          "serial_number": {
+            "type": "string",
+            "title": "Serial Number"
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Start Date"
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "title": "End Date"
+          },
+          "status": {
+            "type": "string",
+            "title": "Status"
+          },
+          "days_remaining": {
+            "type": "integer",
+            "title": "Days Remaining"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "additionalProperties": false,
+        "type": "object",
+        "required": [
+          "id",
+          "sale_id",
+          "customer_id",
+          "customer_name",
+          "customer_phone",
+          "piano_id",
+          "piano_name",
+          "serial_number",
+          "start_date",
+          "end_date",
+          "status",
+          "days_remaining",
+          "notes"
+        ],
+        "title": "WarrantyDetail"
+      }
+    }
+  }
+}
