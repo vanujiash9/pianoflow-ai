@@ -7,7 +7,7 @@ from decimal import Decimal
 from pydantic import Field, field_validator
 
 from app.models.enums import PianoCondition, PianoStatus, PianoType
-from app.schemas.common import ORMModel, StrictModel
+from app.schemas.common import ORMModel, StrictModel, normalize_serial_number
 
 
 class PianoCreate(StrictModel):
@@ -34,6 +34,13 @@ class PianoCreate(StrictModel):
             return value
         return Decimal(str(value))
 
+    @field_validator("serial_number", mode="before")
+    @classmethod
+    def normalize_serial(cls, value: object) -> object:
+        if value is None or isinstance(value, str):
+            return normalize_serial_number(value)
+        return value
+
 
 class PianoUpdate(StrictModel):
     brand: str | None = Field(default=None, min_length=1, max_length=80)
@@ -58,6 +65,13 @@ class PianoUpdate(StrictModel):
         if value is None or isinstance(value, Decimal):
             return value
         return Decimal(str(value))
+
+    @field_validator("serial_number", mode="before")
+    @classmethod
+    def normalize_serial(cls, value: object) -> object:
+        if value is None or isinstance(value, str):
+            return normalize_serial_number(value)
+        return value
 
 
 class PianoRead(ORMModel):

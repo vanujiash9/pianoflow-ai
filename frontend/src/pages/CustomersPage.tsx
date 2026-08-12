@@ -46,9 +46,10 @@ export function CustomersPage() {
       await api<Customer>('/customers', {
         method: 'POST',
         body: JSON.stringify({
-          ...form,
-          address: form.address || null,
-          notes: form.notes || null,
+          name: form.name.trim(),
+          phone: form.phone.trim().replace(/[\s\-()]/g, ''),
+          address: form.address.trim() || null,
+          notes: form.notes.trim() || null,
         }),
       })
       setForm(emptyForm)

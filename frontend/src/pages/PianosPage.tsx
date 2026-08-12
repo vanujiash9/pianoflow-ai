@@ -37,7 +37,7 @@ export function PianosPage() {
   const create = async (event:React.FormEvent)=>{
     event.preventDefault()
     try{
-      await api('/pianos',{method:'POST',body:JSON.stringify({brand:form.brand,model:form.model,serial_number:form.serial_number,year:form.year?Number(form.year):null,color:form.color||null,condition:form.condition,status:'available',notes:form.notes||null})})
+      await api('/pianos',{method:'POST',body:JSON.stringify({brand:form.brand.trim(),model:form.model.trim(),serial_number:form.serial_number.trim().toUpperCase()||null,year:form.year?Number(form.year):null,color:form.color.trim()||null,condition:form.condition,status:'available',notes:form.notes.trim()||null})})
       setOpen(false);setForm(emptyForm);await load()
     }catch(err){setError((err as Error).message)}
   }

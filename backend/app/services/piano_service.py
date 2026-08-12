@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import uuid
-
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -25,7 +24,8 @@ class PianoService:
         return PianoRead.model_validate(entity)
 
     def create(self, data: PianoCreate) -> PianoRead:
-        if data.serial_number and self.repo.get_by_serial(data.serial_number):
+        serial_number = data.serial_number
+        if serial_number and self.repo.get_by_serial(serial_number):
             raise ConflictError("Serial đàn đã tồn tại")
         try:
             return PianoRead.model_validate(self.repo.create(data))

@@ -11,7 +11,28 @@ import { SalesPage } from './pages/SalesPage'
 import { SearchPage } from './pages/SearchPage'
 import { ServicesPage } from './pages/ServicesPage'
 import { WarrantiesPage } from './pages/WarrantiesPage'
+import { WarrantiesPrintPage } from './pages/WarrantiesPrintPage'
 
-export default function App(){
-  return <RoleProvider><BrowserRouter><Routes><Route element={<Layout/>}><Route path="/" element={<DashboardPage/>}/><Route path="/customers" element={<CustomersPage/>}/><Route path="/search" element={<SearchPage/>}/><Route path="/pianos" element={<PianosPage/>}/><Route path="/sales" element={<SalesPage/>}/><Route path="/warranties" element={<WarrantiesPage/>}/><Route path="/services" element={<ServicesPage/>}/><Route path="/leads" element={<LeadsPage/>}/><Route path="/assistant" element={<AssistantPage/>}/><Route path="*" element={<NotFoundPage/>}/></Route></Routes></BrowserRouter></RoleProvider>
+export default function App() {
+  return (
+    <RoleProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<Layout />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/customers" element={<CustomersPage />} />
+            <Route path="/search" element={<SearchPage />} />
+            <Route path="/pianos" element={<PianosPage />} />
+            <Route path="/sales" element={<SalesPage />} />
+            <Route path="/warranties" element={<WarrantiesPage />} />
+            <Route path="/warranties/print" element={<WarrantiesPrintPage />} />
+            <Route path="/services" element={<ServicesPage />} />
+            <Route path="/leads" element={<LeadsPage />} />
+            <Route path="/assistant" element={<AssistantPage />} />
+            <Route path="*" element={<NotFoundPage />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </RoleProvider>
+  )
 }

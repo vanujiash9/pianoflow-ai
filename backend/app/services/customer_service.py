@@ -81,7 +81,8 @@ class CustomerService:
         )
 
     def create(self, data: CustomerCreate) -> CustomerRead:
-        if self.repo.get_by_phone(data.phone):
+        phone = data.phone
+        if self.repo.get_by_phone(phone):
             raise ConflictError("Số điện thoại đã tồn tại")
         try:
             return CustomerRead.model_validate(self.repo.create(data))
