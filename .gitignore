@@ -21,3 +21,6 @@ frontend/.env
 .env
 .env.*
 backend/.venv/
+.playwright-mcp/
+warranty-print.png
+pianoflow-flow-handover.docx
