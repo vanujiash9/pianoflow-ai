@@ -25,7 +25,7 @@ class AIConversationRepository:
         self.db.refresh(conversation)
         return conversation
 
-    def history(self, conversation_id: uuid.UUID, limit: int = 16) -> list[AIMessage]:
+    def history(self, conversation_id: uuid.UUID, limit: int = 8) -> list[AIMessage]:
         stmt = (
             select(AIMessage)
             .where(AIMessage.conversation_id == conversation_id)

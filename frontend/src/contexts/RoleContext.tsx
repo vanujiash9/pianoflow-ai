@@ -11,9 +11,15 @@ type RoleContextValue = {
 const RoleContext = createContext<RoleContextValue | null>(null)
 
 export function RoleProvider({ children }: { children: ReactNode }) {
-  const [role, setRoleState] = useState<Role>(() => (localStorage.getItem('pianoflow-role') as Role) || 'owner')
+  const [role, setRoleState] = useState<Role>(() => {
+    if (typeof window === 'undefined') return 'owner'
+    const storedRole = localStorage.getItem('pianoflow-role')
+    return storedRole === 'staff' ? 'staff' : 'owner'
+  })
   const setRole = (next: Role) => {
-    localStorage.setItem('pianoflow-role', next)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('pianoflow-role', next)
+    }
     setRoleState(next)
   }
   const value = useMemo(() => ({ role, setRole, label: role === 'owner' ? 'Chủ shop' : 'Nhân viên' }), [role])

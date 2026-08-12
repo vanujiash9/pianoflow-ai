@@ -33,7 +33,7 @@
     },
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/osboxes/Code/repo-pattern"],
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/osboxes/project/ai-lab/pianoflow-ai"],
       "description": "Filesystem operations for the current workspace"
     }
   },

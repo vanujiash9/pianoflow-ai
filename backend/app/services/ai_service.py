@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import logging
+import time
+
 from sqlalchemy.orm import Session
 
 from app.ai.agent import ShopAgent
@@ -7,6 +10,8 @@ from app.core.config import get_settings
 from app.models.enums import MessageRole
 from app.repositories.ai_repository import AIConversationRepository
 from app.schemas.ai import AIChatRequest, AIChatResponse
+
+logger = logging.getLogger(__name__)
 
 
 class AIService:
@@ -16,6 +21,7 @@ class AIService:
         self.conversations = AIConversationRepository(db)
 
     def chat(self, payload: AIChatRequest) -> AIChatResponse:
+        started_at = time.perf_counter()
         conversation = self.conversations.get_or_create(payload.conversation_id, payload.message)
         self.conversations.add_message(conversation.id, MessageRole.USER, payload.message)
 
@@ -25,6 +31,14 @@ class AIService:
                 "LLM_API_KEY và LLM_MODEL trong backend/.env."
             )
             self.conversations.add_message(conversation.id, MessageRole.ASSISTANT, answer)
+            elapsed_ms = (time.perf_counter() - started_at) * 1000
+            logger.info(
+                "ai_chat completed conversation_id=%s mode=disabled model=disabled history_count=%s tool_calls=%s elapsed_ms=%.2f",
+                conversation.id,
+                1,
+                0,
+                elapsed_ms,
+            )
             return AIChatResponse(
                 conversation_id=conversation.id,
                 answer=answer,
@@ -33,11 +47,31 @@ class AIService:
                 mode="disabled",
             )
 
-        history = self.conversations.history(conversation.id, limit=16)
+        history = self.conversations.history(conversation.id, limit=self.settings.ai_history_limit)
+        logger.info(
+            "ai_chat start conversation_id=%s model=%s history_count=%s history_limit=%s",
+            conversation.id,
+            self.settings.llm_model,
+            len(history),
+            self.settings.ai_history_limit,
+        )
         messages = [{"role": item.role.value, "content": item.content} for item in history]
+        agent_started_at = time.perf_counter()
         agent = ShopAgent(self.db, self.settings)
         answer, tool_calls, mode = agent.invoke(messages)
+        agent_elapsed_ms = (time.perf_counter() - agent_started_at) * 1000
         self.conversations.add_message(conversation.id, MessageRole.ASSISTANT, answer)
+        elapsed_ms = (time.perf_counter() - started_at) * 1000
+        logger.info(
+            "ai_chat completed conversation_id=%s mode=%s model=%s history_count=%s tool_calls=%s agent_elapsed_ms=%.2f elapsed_ms=%.2f",
+            conversation.id,
+            mode,
+            self.settings.llm_model,
+            len(history),
+            len(tool_calls),
+            agent_elapsed_ms,
+            elapsed_ms,
+        )
         return AIChatResponse(
             conversation_id=conversation.id,
             answer=answer,

@@ -167,7 +167,12 @@ class ShopAITools:
             select(func.count(Piano.id)).where(Piano.status == PianoStatus.AVAILABLE)
         ) or 0
         customers = self.db.scalar(select(func.count(Customer.id))) or 0
-        sold = self.db.scalar(select(func.count(Sale.id)).where(Sale.sale_date >= month_start)) or 0
+        sold = (
+            self.db.scalar(
+                select(func.count(Sale.id)).where(Sale.sale_date >= month_start, Sale.sale_date <= today)
+            )
+            or 0
+        )
         attention = (
             len(self.warranties.expiring_within(30))
             + len(self.services.due_within(30))

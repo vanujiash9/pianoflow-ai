@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import logging
+import time
 from typing import TypedDict
 
 try:
@@ -35,6 +37,9 @@ class AgentState(TypedDict):
     tool_calls_used: list[str]
 
 
+logger = logging.getLogger(__name__)
+
+
 class ShopAgent:
     def __init__(self, db: Session, settings: Settings) -> None:
         self.settings = settings
@@ -48,6 +53,18 @@ class ShopAgent:
         )
         self.mode = "langgraph" if StateGraph is not None else "manual"
         self.graph = self._build_graph() if StateGraph is not None else None
+
+    @property
+    def model(self) -> str:
+        return self.settings.llm_model
+
+    @property
+    def history_limit(self) -> int:
+        return self.settings.ai_history_limit
+
+    @property
+    def tool_count(self) -> int:
+        return 0
 
     def invoke(self, messages: list[dict]) -> tuple[str, list[str], str]:
         initial: AgentState = {
@@ -82,6 +99,7 @@ class ShopAgent:
         return state
 
     def _reason_node(self, state: AgentState) -> AgentState:
+        started_at = time.perf_counter()
         completion = self.client.chat.completions.create(
             model=self.settings.llm_model,
             messages=state["messages"],
@@ -89,6 +107,7 @@ class ShopAgent:
             tool_choice="auto",
             temperature=0.1,
         )
+        elapsed_ms = (time.perf_counter() - started_at) * 1000
         message = completion.choices[0].message
         payload: dict = {"role": "assistant", "content": message.content or ""}
         if message.tool_calls:
@@ -103,6 +122,13 @@ class ShopAgent:
                 }
                 for call in message.tool_calls
             ]
+        logger.info(
+            "ai_provider completed model=%s mode=%s tool_calls=%s elapsed_ms=%.2f",
+            self.settings.llm_model,
+            self.mode,
+            len(message.tool_calls or []),
+            elapsed_ms,
+        )
         return {"messages": [*state["messages"], payload], "tool_calls_used": state["tool_calls_used"]}
 
     @staticmethod
@@ -117,9 +143,9 @@ class ShopAgent:
             name = call["function"]["name"]
             try:
                 arguments = json.loads(call["function"]["arguments"] or "{}")
-            except json.JSONDecodeError:
-                arguments = {}
-            result = self.tools.execute(name, arguments)
+                result = self.tools.execute(name, arguments)
+            except (json.JSONDecodeError, TypeError) as error:
+                result = {"error": f"Invalid tool call for {name}: {error}"}
             used.append(name)
             new_messages.append(
                 {

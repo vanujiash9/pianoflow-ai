@@ -12,8 +12,8 @@ import {
   Users,
   Wrench,
 } from 'lucide-react'
-import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
+import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 import { useRole } from '../contexts/RoleContext'
 
 const nav = [
@@ -43,7 +43,15 @@ export function Layout() {
   return (
     <div className="app-shell">
       <aside className={`sidebar ${mobileOpen ? 'open' : ''}`}>
-        <div className="brand"><div className="brand-mark"><Piano size={22} /></div><div><strong>PianoFlow</strong><span>Shop workspace</span></div></div>
+        <div className="brand">
+          <div className="brand-mark">
+            <Piano size={22} />
+          </div>
+          <div>
+            <strong>PianoFlow</strong>
+            <span>Shop workspace</span>
+          </div>
+        </div>
         <nav>
           {nav.map(({ to, label: itemLabel, icon: Icon }) => (
             <NavLink key={to} to={to} end={to === '/'} onClick={() => setMobileOpen(false)} className={({ isActive }) => isActive ? 'active' : ''}>
@@ -61,10 +69,12 @@ export function Layout() {
           <button className="mobile-menu" onClick={() => setMobileOpen((value) => !value)}><Menu size={20} /></button>
           <form className="global-search" onSubmit={submitSearch}><Search size={17} /><input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm khách, SĐT, model hoặc serial..." /></form>
           <div className="topbar-actions">
-            <button className="icon-button"><Bell size={18} /></button>
+            <button type="button" className="icon-button" aria-label="Thông báo">
+              <Bell size={18} />
+            </button>
             <div className="role-switch">
-              <button className={role === 'owner' ? 'selected' : ''} onClick={() => setRole('owner')}>Chủ shop</button>
-              <button className={role === 'staff' ? 'selected' : ''} onClick={() => setRole('staff')}>Nhân viên</button>
+              <button type="button" className={role === 'owner' ? 'selected' : ''} onClick={() => setRole('owner')}>Chủ shop</button>
+              <button type="button" className={role === 'staff' ? 'selected' : ''} onClick={() => setRole('staff')}>Nhân viên</button>
             </div>
             <div className="avatar">{label.charAt(0)}</div>
           </div>

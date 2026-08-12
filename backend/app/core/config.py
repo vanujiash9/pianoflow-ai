@@ -8,7 +8,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=("../.env", ".env"),
+        env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     api_v1_prefix: str = "/api/v1"
     cors_origins: list[str] | str = Field(
         default_factory=lambda: [
+            "http://localhost:5174",
+            "http://127.0.0.1:5174",
             "http://localhost:5173",
             "http://127.0.0.1:5173",
         ]
@@ -34,6 +36,7 @@ class Settings(BaseSettings):
     llm_api_key: str = Field(default="", validation_alias=AliasChoices("LLM_API_KEY", "OPENAI__API_KEY"))
     llm_model: str = Field(default="", validation_alias=AliasChoices("LLM_MODEL", "OPENAI__MODEL"))
     llm_timeout_seconds: float = 45.0
+    ai_history_limit: int = 8
 
     @field_validator("cors_origins", mode="before")
     @classmethod
