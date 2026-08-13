@@ -1,51 +1,98 @@
-import { useEffect, useRef } from 'react'
 import { X } from 'lucide-react'
-import type { ReactNode } from 'react'
+import {
+  type ReactNode,
+  useEffect,
+} from 'react'
+
+import './drawer.css'
+
+type DrawerProps = {
+  open: boolean
+  title: string
+  subtitle?: string
+  children: ReactNode
+  onClose: () => void
+}
 
 export function Drawer({
   open,
   title,
-  onClose,
+  subtitle,
   children,
-}: {
-  open: boolean
-  title: string
-  onClose: () => void
-  children: ReactNode
-}) {
-  const panelRef = useRef<HTMLElement | null>(null)
-
+  onClose,
+}: DrawerProps) {
   useEffect(() => {
-    if (open) {
-      panelRef.current?.focus()
-    }
-  }, [open])
+    if (!open) return
 
-  if (!open) return null
+    const handleKeyDown = (
+      event: KeyboardEvent,
+    ) => {
+      if (event.key === 'Escape') {
+        onClose()
+      }
+    }
+
+    window.addEventListener(
+      'keydown',
+      handleKeyDown,
+    )
+
+    const oldOverflow =
+      document.body.style.overflow
+
+    document.body.style.overflow =
+      'hidden'
+
+    return () => {
+      window.removeEventListener(
+        'keydown',
+        handleKeyDown,
+      )
+
+      document.body.style.overflow =
+        oldOverflow
+    }
+  }, [open, onClose])
+
+  if (!open) {
+    return null
+  }
 
   return (
-    <div className="drawer-backdrop" onMouseDown={onClose}>
-      <aside
-        ref={panelRef}
-        className="drawer"
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-        onMouseDown={(event) => event.stopPropagation()}
-        onKeyDown={(event) => {
-          if (event.key === 'Escape') onClose()
-        }}
-        tabIndex={-1}
-      >
-        <header className="drawer-header">
+    <div
+      className="app-drawer-overlay"
+      onMouseDown={(event) => {
+        if (
+          event.target ===
+          event.currentTarget
+        ) {
+          onClose()
+        }
+      }}
+    >
+      <aside className="app-drawer">
+        <header className="app-drawer-header">
           <div>
             <h2>{title}</h2>
+
+            {subtitle && (
+              <p>{subtitle}</p>
+            )}
           </div>
-          <button className="icon-button" onClick={onClose} aria-label="Đóng">
-            <X size={18} />
+
+          <button
+            type="button"
+            className="app-drawer-close"
+            onClick={onClose}
+            aria-label="Close"
+          >
+            <X size={19} />
           </button>
         </header>
-        <div className="drawer-body">{children}</div>
+
+        <div className="app-drawer-content">
+          {children}
+        </div>
       </aside>
     </div>
   )
