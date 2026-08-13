@@ -1,6 +1,15 @@
 export type PianoStatus = 'available' | 'reserved' | 'sold' | 'service'
 export type PianoCondition = 'new' | 'used'
 export type LeadStatus = 'new' | 'contacted' | 'visited' | 'considering' | 'won' | 'lost'
+
+export interface CustomerSummary {
+  id: string
+  name: string
+  phone: string
+  address: string | null
+}
+
+export interface LeadCustomer extends CustomerSummary {}
 export type ServiceStatus = 'scheduled' | 'in_progress' | 'completed' | 'cancelled'
 
 export interface Customer {
@@ -73,8 +82,8 @@ export interface ServiceRecord {
 
 export interface Lead {
   id: string
-  customer_name: string
-  phone: string
+  customer_id: string
+  customer: CustomerSummary
   budget_min: number | null
   budget_max: number | null
   interested_brand: string | null

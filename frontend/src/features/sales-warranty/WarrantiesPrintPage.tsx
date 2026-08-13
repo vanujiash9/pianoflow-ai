@@ -172,10 +172,6 @@ export function WarrantiesPrintPage() {
         </form>
 
         <section className="warranty-preview-panel">
-          <div className="warranty-preview-label">
-            <span>A4 preview</span>
-            <small>Hiển thị thu gọn trên màn hình</small>
-          </div>
           <div className="warranty-preview-scroll">
             <div className="warranty-print-document">
               <header className="warranty-print-header">

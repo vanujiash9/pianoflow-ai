@@ -9,6 +9,7 @@ interface KpiCardProps {
   icon: LucideIcon
   tone?: 'blue' | 'green' | 'amber' | 'violet'
   onClick?: () => void
+  loading?: boolean
 }
 
 const cardStyle: CSSProperties = {
@@ -72,7 +73,11 @@ export function KpiCard({
   icon: Icon,
   tone = 'blue',
   onClick,
+  loading,
 }: KpiCardProps) {
+  const displayValue = loading ? '—' : value
+  const displayHelper = loading ? 'Đang tải...' : helper
+
   const handleKeyboard = (
     event: KeyboardEvent<HTMLDivElement>,
   ) => {
@@ -117,9 +122,9 @@ export function KpiCard({
       <div style={contentStyle}>
         <span style={labelStyle}>{label}</span>
 
-        <strong style={valueStyle}>{value}</strong>
+        <strong style={valueStyle}>{displayValue}</strong>
 
-        <small style={helperStyle}>{helper}</small>
+        <small style={helperStyle}>{displayHelper}</small>
       </div>
 
       {onClick ? (

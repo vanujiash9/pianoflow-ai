@@ -1,158 +1,138 @@
-import type { CSSProperties } from 'react'
 import {
   AlertCircle,
   Boxes,
   CalendarClock,
+  ChevronRight,
+  ShieldCheck,
   ShoppingBag,
   Users,
+  Wrench,
 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
-  Area,
-  AreaChart,
+  Bar,
+  BarChart,
   CartesianGrid,
+  Cell,
   ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts'
 
-import { PageHeader } from '../../components/ui/PageHeader'
 import { api, fmtDate } from '../../lib/api'
 import type { DashboardData } from '../../types'
-import { KpiCard } from './components/KpiCard'
 
-const pageStyle: CSSProperties = {
-  height: 'calc(100dvh - 84px)',
-  minHeight: 0,
-  overflow: 'hidden',
+import './dashboard.css'
 
-  display: 'grid',
-  gridTemplateRows: 'auto 98px minmax(0, 1fr) 158px',
-  gap: 12,
-}
+function warrantyAppearance(status?: string | null) {
+  const value = (status || '').toLowerCase()
 
-const kpiGridStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(4, minmax(0, 1fr))',
-  gap: 12,
-  minHeight: 0,
-}
-
-const mainGridStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'minmax(0, 1.65fr) minmax(300px, 0.75fr)',
-  gap: 12,
-  minHeight: 0,
-}
-
-const fullPanelStyle: CSSProperties = {
-  minHeight: 0,
-  overflow: 'hidden',
-  display: 'flex',
-  flexDirection: 'column',
-}
-
-const panelHeaderStyle: CSSProperties = {
-  padding: '14px 16px 10px',
-  flexShrink: 0,
-}
-
-const tableAreaStyle: CSSProperties = {
-  minHeight: 0,
-  flex: 1,
-  overflow: 'hidden',
-}
-
-const attentionBodyStyle: CSSProperties = {
-  minHeight: 0,
-  flex: 1,
-  padding: '0 14px 12px',
-  overflow: 'hidden',
-}
-
-const chartPanelStyle: CSSProperties = {
-  minHeight: 0,
-  height: '100%',
-  overflow: 'hidden',
-  display: 'grid',
-  gridTemplateColumns: '250px minmax(0, 1fr)',
-  alignItems: 'stretch',
-}
-
-const chartInfoStyle: CSSProperties = {
-  padding: '16px 18px',
-  borderRight: '1px solid #edf0f6',
-
-  display: 'flex',
-  flexDirection: 'column',
-  justifyContent: 'center',
-}
-
-const chartStyle: CSSProperties = {
-  minWidth: 0,
-  minHeight: 0,
-  padding: '8px 14px 4px 4px',
-}
-
-function getWarrantyAppearance(status?: string | null) {
-  const normalized = (status || '').toLowerCase()
-
-  if (
-    normalized.includes('sắp') ||
-    normalized.includes('expiring')
-  ) {
+  if (value.includes('sắp') || value.includes('expiring')) {
     return {
-      label: status || 'Sắp hết hạn',
-      background: '#fff7e6',
-      color: '#b45309',
-      border: '#fed7aa',
+      label: 'Sắp hết hạn',
+      className: 'is-expiring',
     }
   }
 
   if (
-    normalized.includes('hết') ||
-    normalized.includes('expired') ||
-    normalized.includes('void')
+    value.includes('hết') ||
+    value.includes('expired') ||
+    value.includes('void')
   ) {
     return {
-      label: status || 'Hết hạn',
-      background: '#fff1f2',
-      color: '#be123c',
-      border: '#fecdd3',
+      label: 'Hết hạn',
+      className: 'is-expired',
     }
   }
 
-  if (
-    normalized.includes('còn') ||
-    normalized.includes('active')
-  ) {
+  if (value.includes('còn') || value.includes('active')) {
     return {
-      label: status || 'Còn hạn',
-      background: '#ecfdf3',
-      color: '#15803d',
-      border: '#bbf7d0',
+      label: 'Còn hạn',
+      className: 'is-active',
     }
   }
 
   return {
-    label: status || '—',
-    background: '#f4f6f8',
-    color: '#64748b',
-    border: '#e2e8f0',
+    label: '—',
+    className: 'is-neutral',
   }
 }
 
-function getPriorityColor(priority?: string) {
-  switch (priority) {
-    case 'high':
-      return '#ef4444'
-    case 'medium':
-      return '#f59e0b'
+function attentionIcon(type: string) {
+  switch (type) {
+    case 'warranty':
+      return ShieldCheck
+    case 'service':
+      return Wrench
     default:
-      return '#64748b'
+      return Users
   }
+}
+
+function attentionRoute(type: string) {
+  switch (type) {
+    case 'warranty':
+      return '/warranties'
+    case 'service':
+      return '/services'
+    case 'lead':
+      return '/leads'
+    default:
+      return '/'
+  }
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="dashboard-page">
+      <header className="dashboard-heading">
+        <h1>Tổng quan hôm nay</h1>
+      </header>
+
+      <section className="dashboard-kpis">
+        {[1, 2, 3, 4].map((item) => (
+          <div className="dashboard-kpi skeleton-card" key={item}>
+            <span className="skeleton skeleton-icon" />
+
+            <div className="dashboard-kpi-copy">
+              <span className="skeleton skeleton-label" />
+              <span className="skeleton skeleton-value" />
+            </div>
+          </div>
+        ))}
+      </section>
+
+      <section className="dashboard-main-grid">
+        <div className="dashboard-panel dashboard-chart-panel">
+          <div className="dashboard-panel-heading">
+            <span className="skeleton skeleton-title" />
+          </div>
+
+          <div className="dashboard-chart-skeleton" />
+        </div>
+
+        <div className="dashboard-panel">
+          <div className="dashboard-panel-heading">
+            <span className="skeleton skeleton-title" />
+          </div>
+
+          <div className="dashboard-list-skeleton">
+            <span />
+            <span />
+            <span />
+          </div>
+        </div>
+      </section>
+
+      <section className="dashboard-panel dashboard-customers-panel">
+        <div className="dashboard-panel-heading">
+          <span className="skeleton skeleton-title" />
+        </div>
+      </section>
+    </div>
+  )
 }
 
 export function DashboardPage() {
@@ -160,7 +140,6 @@ export function DashboardPage() {
   const [error, setError] = useState('')
 
   const navigate = useNavigate()
-
 
   useEffect(() => {
     api<DashboardData>('/dashboard')
@@ -181,352 +160,345 @@ export function DashboardPage() {
   if (!data) {
     return (
       <>
-        <PageHeader
-        title="Tổng quan hôm nay"
-        subtitle="Theo dõi khách hàng, đàn, bán hàng và bảo hành trong ngày."
-      />
-
-        {error ? (
-          <div className="error-banner">{error}</div>
-        ) : (
-          <div className="loading-card">Đang tải...</div>
-        )}
+        {error && <div className="error-banner">{error}</div>}
+        <DashboardSkeleton />
       </>
     )
   }
 
+  const kpis = [
+    {
+      label: 'Đàn tại shop',
+      value: data.kpis.available_pianos,
+      icon: Boxes,
+      tone: 'indigo',
+      route: '/pianos',
+    },
+    {
+      label: 'Đã bán tháng này',
+      value: data.kpis.sold_this_month,
+      icon: ShoppingBag,
+      tone: 'green',
+      route: '/sales',
+    },
+    {
+      label: 'Khách hàng',
+      value: data.kpis.total_customers,
+      icon: Users,
+      tone: 'blue',
+      route: '/customers',
+    },
+    {
+      label: 'Cần xử lý',
+      value: data.kpis.action_items,
+      icon: AlertCircle,
+      tone: 'amber',
+      route: null,
+    },
+  ]
+
   return (
-    <div style={pageStyle}>
-      <PageHeader
-        title="Tổng quan hôm nay"
-        subtitle="Theo dõi khách hàng, đàn, bán hàng và bảo hành trong ngày."
-      />
+    <div className="dashboard-page">
+      <header className="dashboard-heading">
+        <h1>Tổng quan hôm nay</h1>
+      </header>
+
+      {error && <div className="error-banner">{error}</div>}
 
       {/* KPI */}
-      <section style={kpiGridStyle}>
-        <KpiCard
-          label="Đàn"
-          value={data.kpis.available_pianos}
-          helper="Có thể tư vấn ngay"
-          icon={Boxes}
-          tone="blue"
-          onClick={() => navigate('/pianos')}
-        />
+      <section className="dashboard-kpis">
+        {kpis.map((item) => {
+          const Icon = item.icon
 
-        <KpiCard
-          label="Đã bán tháng này"
-          value={data.kpis.sold_this_month}
-          helper="Đơn bán mới trong tháng"
-          icon={ShoppingBag}
-          tone="green"
-          onClick={() => navigate('/sales')}
-        />
+          return (
+            <button
+              key={item.label}
+              type="button"
+              className="dashboard-kpi"
+              onClick={() => {
+                if (item.route) navigate(item.route)
+              }}
+              disabled={!item.route}
+            >
+              <span className={`dashboard-kpi-icon tone-${item.tone}`}>
+                <Icon size={21} strokeWidth={1.8} />
+              </span>
 
-        <KpiCard
-          label="Khách"
-          value={data.kpis.total_customers}
-          helper="Đã lưu hồ sơ"          icon={Users}
-          tone="violet"
-          onClick={() => navigate('/customers')}
-        />
+              <span className="dashboard-kpi-copy">
+                <span className="dashboard-kpi-label">
+                  {item.label}
+                </span>
 
-        <KpiCard
-          label="Cần xử lý"
-          value={data.kpis.action_items}
-          helper="Không có việc cần làm hôm nay"
-          icon={AlertCircle}
-          tone="amber"
-        />
+                <strong>{item.value}</strong>
+              </span>
+
+              {item.route && (
+                <ChevronRight
+                  size={16}
+                  className="dashboard-kpi-arrow"
+                />
+              )}
+            </button>
+          )
+        })}
       </section>
 
-      {/* MAIN AREA */}
-      <section style={mainGridStyle}>
-        <div className="panel" style={fullPanelStyle}>
-          <div
-            className="panel-header"
-            style={panelHeaderStyle}
-          >
+      {/* CHART + ATTENTION */}
+      <section className="dashboard-main-grid">
+        <article className="dashboard-panel dashboard-chart-panel">
+          <div className="dashboard-panel-heading">
             <div>
-              <h3>Khách & bảo hành</h3>
+              <h2>Bán hàng 6 tháng</h2>
             </div>
+
+            <span className="dashboard-period">6 tháng</span>
           </div>
 
-          <div style={tableAreaStyle}>
-            {recentCustomers.length === 0 ? (
-              <div className="dashboard-empty-state">
-                Chưa có khách gần đây
-              </div>
-            ) : (
-              <table
-                style={{
-                  width: '100%',
-                  tableLayout: 'fixed',
+          <div className="dashboard-chart">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={data.sales_by_month}
+                margin={{
+                  top: 8,
+                  right: 8,
+                  left: -24,
+                  bottom: 0,
                 }}
+                barCategoryGap="35%"
               >
-                <thead>
-                  <tr>
-                    <th style={{ width: '27%' }}>
-                      Khách hàng
-                    </th>
-                    <th style={{ width: '27%' }}>
-                      Đàn gần nhất
-                    </th>
-                    <th style={{ width: '17%' }}>
-                      Ngày mua
-                    </th>
-                    <th style={{ width: '17%' }}>
-                      Bảo hành
-                    </th>
-                    <th style={{ width: '12%' }} />
-                  </tr>
-                </thead>
+                <defs>
+                  <linearGradient
+                    id="dashboardBarGradient"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="#5868f2"
+                      stopOpacity={1}
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="#7c6cf3"
+                      stopOpacity={0.72}
+                    />
+                  </linearGradient>
 
-                <tbody>
-                  {recentCustomers.map((item) => {
-                    const warranty = getWarrantyAppearance(
-                      item.warranty_status,
-                    )
+                  <linearGradient
+                    id="dashboardBarGradientLast"
+                    x1="0"
+                    y1="0"
+                    x2="0"
+                    y2="1"
+                  >
+                    <stop
+                      offset="0%"
+                      stopColor="#4658e8"
+                    />
+                    <stop
+                      offset="100%"
+                      stopColor="#7668ef"
+                    />
+                  </linearGradient>
+                </defs>
 
-                    return (
-                      <tr key={item.phone}>
-                        <td>
-                          <strong>{item.name}</strong>
-                          <div className="subtext">
-                            {item.phone}
-                          </div>
-                        </td>
+                <CartesianGrid
+                  vertical={false}
+                  stroke="#edf0f5"
+                  strokeDasharray="0"
+                />
 
-                        <td>
-                          {item.last_piano || '—'}
-                        </td>
+                <XAxis
+                  dataKey="month"
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{
+                    fill: '#8b94a5',
+                    fontSize: 11,
+                  }}
+                  dy={8}
+                />
 
-                        <td>
-                          {fmtDate(item.last_purchase_date)}
-                        </td>
+                <YAxis
+                  allowDecimals={false}
+                  axisLine={false}
+                  tickLine={false}
+                  tick={{
+                    fill: '#a0a7b4',
+                    fontSize: 10,
+                  }}
+                  width={36}
+                />
 
-                        <td>
-                          <span
-                            style={{
-                              display: 'inline-flex',
-                              alignItems: 'center',
+                <Tooltip
+                  cursor={{
+                    fill: 'rgba(88, 104, 242, 0.035)',
+                  }}
+                  formatter={(value) => [
+                    `${value} đàn`,
+                    'Đã bán',
+                  ]}
+                  contentStyle={{
+                    border: '1px solid #e7eaf1',
+                    borderRadius: 10,
+                    boxShadow:
+                      '0 10px 30px rgba(31, 39, 64, 0.08)',
+                    fontSize: 12,
+                  }}
+                />
 
-                              padding: '4px 9px',
-                              borderRadius: 999,
-
-                              border: `1px solid ${warranty.border}`,
-                              background: warranty.background,
-                              color: warranty.color,
-
-                              fontSize: 12,
-                              fontWeight: 600,
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            {warranty.label}
-                          </span>
-                        </td>
-
-                        <td>
-                          <button
-                            type="button"
-                            className="text-button"
-                            onClick={() =>
-                              navigate('/warranties')
-                            }
-                            style={{
-                              fontSize: 12,
-                              whiteSpace: 'nowrap',
-                            }}
-                          >
-                            Tra cứu
-                          </button>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
-            )}
+                <Bar
+                  dataKey="count"
+                  radius={[6, 6, 2, 2]}
+                  maxBarSize={48}
+                >
+                  {data.sales_by_month.map((item, index) => (
+                    <Cell
+                      key={item.month}
+                      fill={
+                        index === data.sales_by_month.length - 1
+                          ? 'url(#dashboardBarGradientLast)'
+                          : 'url(#dashboardBarGradient)'
+                      }
+                    />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
           </div>
-        </div>
+        </article>
 
         {/* ATTENTION */}
-        <div
-          className="panel attention-panel"
-          style={fullPanelStyle}
-        >
-          <div
-            className="panel-header"
-            style={panelHeaderStyle}
-          >
+        <article className="dashboard-panel dashboard-attention">
+          <div className="dashboard-panel-heading">
             <div>
-              <h3>Cần xử lý</h3>
+              <h2>Cần xử lý</h2>
             </div>
 
-            <CalendarClock size={19} />
+            <CalendarClock size={18} />
           </div>
 
-          <div style={attentionBodyStyle}>
-            {attentionItems.length === 0 ? (
-              <div />
-            ) : (
-              <div
-                style={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                }}
-              >
-                {attentionItems.map((item, index) => (
-                  <div
+          {attentionItems.length === 0 ? (
+            <div className="dashboard-empty">
+              <ShieldCheck size={22} />
+              <span>Không có việc cần xử lý</span>
+            </div>
+          ) : (
+            <div className="dashboard-attention-list">
+              {attentionItems.map((item, index) => {
+                const Icon = attentionIcon(item.type)
+
+                return (
+                  <button
+                    type="button"
+                    className="dashboard-attention-row"
                     key={`${item.type}-${index}`}
-                    style={{
-                      display: 'grid',
-                      gridTemplateColumns:
-                        '8px minmax(0, 1fr) auto',
-                      gap: 10,
-                      alignItems: 'center',
-
-                      flex: '1 1 0',
-
-                      borderBottom:
-                        index < attentionItems.length - 1
-                          ? '1px solid #edf0f5'
-                          : undefined,
-                    }}
+                    onClick={() =>
+                      navigate(attentionRoute(item.type))
+                    }
                   >
-                    <div
-                      style={{
-                        width: 8,
-                        height: 8,
-                        borderRadius: '50%',
-                        background: getPriorityColor(
-                          item.priority,
-                        ),
-                      }}
-                    />
-
-                    <div
-                      style={{
-                        minWidth: 0,
-                        display: 'flex',
-                        flexDirection: 'column',
-                        gap: 3,
-                      }}
+                    <span
+                      className={`dashboard-attention-icon priority-${item.priority}`}
                     >
-                      <strong style={{ fontSize: 13 }}>
-                        {item.title}
-                      </strong>
-                    </div>
+                      <Icon size={16} />
+                    </span>
+
+                    <span className="dashboard-attention-copy">
+                      <strong>{item.title}</strong>
+                      <span>{item.subtitle}</span>
+                    </span>
 
                     <time>{fmtDate(item.due_date)}</time>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+        </article>
       </section>
 
-      {/* COMPACT SALES CHART */}
-      <section
-        className="panel"
-        style={chartPanelStyle}
-      >
-        <div style={chartInfoStyle}>
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 8,
-              marginBottom: 5,
-            }}
+      {/* RECENT CUSTOMERS */}
+      <section className="dashboard-panel dashboard-customers-panel">
+        <div className="dashboard-panel-heading dashboard-customer-heading">
+          <h2>Khách hàng gần đây</h2>
+
+          <button
+            type="button"
+            className="dashboard-view-all"
+            onClick={() => navigate('/customers')}
           >
-            <ShoppingBag size={17} />
-            <h3 style={{ margin: 0 }}>Nhịp bán</h3>
+            Xem tất cả
+            <ChevronRight size={14} />
+          </button>
+        </div>
+
+        {recentCustomers.length === 0 ? (
+          <div className="dashboard-empty dashboard-empty-customers">
+            Chưa có khách hàng
           </div>
-        </div>
+        ) : (
+          <div className="dashboard-table-wrap">
+            <table className="dashboard-table">
+              <thead>
+                <tr>
+                  <th>Khách hàng</th>
+                  <th>Đàn gần nhất</th>
+                  <th>Ngày mua</th>
+                  <th>Bảo hành</th>
+                </tr>
+              </thead>
 
-        <div style={chartStyle}>
-          <ResponsiveContainer
-            width="100%"
-            height="100%"
-          >
-            <AreaChart
-              data={data.sales_by_month}
-              margin={{
-                top: 8,
-                right: 12,
-                left: -22,
-                bottom: 0,
-              }}
-            >
-              <defs>
-                <linearGradient
-                  id="dashboardSalesFill"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset="5%"
-                    stopColor="#5b6df8"
-                    stopOpacity={0.24}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="#5b6df8"
-                    stopOpacity={0}
-                  />
-                </linearGradient>
-              </defs>
+              <tbody>
+                {recentCustomers.map((item) => {
+                  const warranty = warrantyAppearance(
+                    item.warranty_status,
+                  )
 
-              <CartesianGrid
-                strokeDasharray="3 3"
-                vertical={false}
-                stroke="#edf0f6"
-              />
+                  return (
+                    <tr key={item.phone}>
+                      <td>
+                        <div className="dashboard-customer-cell">
+                          <div className="dashboard-avatar">
+                            {item.name
+                              .trim()
+                              .charAt(0)
+                              .toUpperCase()}
+                          </div>
 
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                fontSize={11}
-              />
+                          <div>
+                            <strong>{item.name}</strong>
+                            <span>{item.phone}</span>
+                          </div>
+                        </div>
+                      </td>
 
-              <YAxis
-                allowDecimals={false}
-                tickLine={false}
-                axisLine={false}
-                fontSize={11}
-                width={34}
-              />
+                      <td>
+                        <strong className="dashboard-piano-name">
+                          {item.last_piano || '—'}
+                        </strong>
+                      </td>
 
-              <Tooltip
-                cursor={{
-                  stroke: '#cbd3ff',
-                  strokeDasharray: '3 3',
-                }}
-                contentStyle={{
-                  borderRadius: 10,
-                  border: '1px solid #e6eaf2',
-                  boxShadow:
-                    '0 8px 24px rgba(15, 23, 42, 0.08)',
-                  fontSize: 12,
-                }}
-              />
+                      <td>
+                        {fmtDate(item.last_purchase_date)}
+                      </td>
 
-              <Area
-                type="monotone"
-                dataKey="count"
-                stroke="#5b6df8"
-                fill="url(#dashboardSalesFill)"
-                strokeWidth={2.5}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+                      <td>
+                        <span
+                          className={`dashboard-warranty ${warranty.className}`}
+                        >
+                          <i />
+                          {warranty.label}
+                        </span>
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </div>
   )

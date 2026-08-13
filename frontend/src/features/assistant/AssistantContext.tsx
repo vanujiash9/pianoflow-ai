@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState, type ReactNode, type ReactElement } from 'react'
 import { api, ApiError } from '../../lib/api'
 
 type Message = {
@@ -63,7 +63,7 @@ async function loadConversationMessages(conversationId: string): Promise<Message
   }
 }
 
-export function AssistantProvider({ children }: { children: ReactNode }): JSX.Element {
+export function AssistantProvider({ children }: { children: ReactNode }): ReactElement {
   const [messages, setMessages] = useState<Message[]>([initialMessage])
   const [conversationId, setConversationId] = useState<string | null>(null)
   const [isResponding, setIsResponding] = useState(false)

@@ -23,6 +23,10 @@ export default function App() {
             <Route element={<Layout />}>
               <Route path="/" element={<DashboardPage />} />
               <Route path="/customers" element={<CustomersPage />} />
+              <Route
+                path="/customers/:customerId"
+                element={<CustomersPage />}
+              />
               <Route path="/search" element={<SearchPage />} />
               <Route path="/pianos" element={<PianosPage />} />
               <Route path="/sales" element={<SalesPage />} />
