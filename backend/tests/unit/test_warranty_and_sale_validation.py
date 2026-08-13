@@ -10,7 +10,7 @@ from app.schemas.sale import SaleCreate
 
 
 def test_sale_create_rejects_zero_warranty_months():
-    with pytest.raises(BusinessRuleError):
+    with pytest.raises(ValidationError):
         SaleCreate(
             customer_id="11111111-1111-1111-1111-111111111111",
             piano_id="22222222-2222-2222-2222-222222222222",

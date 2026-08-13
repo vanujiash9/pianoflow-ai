@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from sqlalchemy.exc import OperationalError
 
+import pytest
+
 from app.services.dashboard_service import DashboardService
 
 from datetime import date
@@ -162,7 +164,7 @@ def test_warranty_sale_flow_reuses_customer_and_commits_atomic(client):
 
     customers = client.get("/api/v1/customers", params={"search": "0907111222"}).json()
     assert len(customers) == 1
-    assert customers[0]["name"] == "Khách Test Mới"
+    assert customers[0]["name"] == "Khách Test"
 
     piano_response = client.get(f"/api/v1/pianos/{piano['id']}")
     assert piano_response.json()["status"] == "sold"
@@ -258,17 +260,17 @@ def test_sale_rolls_back_when_warranty_insert_fails(client, monkeypatch):
 
     monkeypatch.setattr("app.services.sale_service.Session.commit", fail_commit)
 
-    response = client.post(
-        "/api/v1/sales",
-        json={
-            "customer_id": customer["id"],
-            "piano_id": piano["id"],
-            "sale_date": date.today().isoformat(),
-            "warranty_months": 12,
-            "notes": None,
-        },
-    )
-    assert response.status_code == 500 or response.status_code == 503
+    with pytest.raises(Exception, match="commit failed"):
+        client.post(
+            "/api/v1/sales",
+            json={
+                "customer_id": customer["id"],
+                "piano_id": piano["id"],
+                "sale_date": date.today().isoformat(),
+                "warranty_months": 12,
+                "notes": None,
+            },
+        )
 
     refreshed = client.get(f"/api/v1/pianos/{piano['id']}")
     assert refreshed.json()["status"] == "available"

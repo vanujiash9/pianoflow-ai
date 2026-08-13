@@ -29,6 +29,7 @@ class LeadStatus(StrEnum):
     CONTACTED = "contacted"
     VISITED = "visited"
     CONSIDERING = "considering"
+    CONVERTED = "converted"
     WON = "won"
     LOST = "lost"
 

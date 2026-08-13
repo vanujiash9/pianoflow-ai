@@ -10,12 +10,15 @@ from sqlalchemy.orm import sessionmaker
 
 from app.core.config import get_settings
 from app.core.database import Base, get_db
-from app.models.enums import PianoCondition, PianoStatus, PianoType
+from app.models.enums import LeadStatus, PianoCondition, PianoStatus, PianoType
+from app.models.lead import Lead
 from app.models.sale import Sale
 from app.models.warranty import Warranty
 from app.schemas.customer import CustomerCreate
+from app.schemas.lead import LeadCreate
 from app.schemas.piano import PianoCreate
 from app.schemas.sale import SaleCreate
+from app.services.lead_service import LeadService
 from app.services.sale_service import SaleService
 
 
@@ -70,7 +73,8 @@ def test_get_db_rolls_back_before_close(monkeypatch):
 
 
 def test_sale_service_rolls_back_when_commit_fails(db_session):
-    service = SaleService(db_session)
+    sale_service = SaleService(db_session)
+    lead_service = LeadService(db_session)
     db_session.rollback_called = False
     original_rollback = db_session.rollback
 
@@ -80,10 +84,15 @@ def test_sale_service_rolls_back_when_commit_fails(db_session):
 
     db_session.rollback = tracked_rollback  # type: ignore[method-assign]
 
-    customer = service.customers.create(
-        CustomerCreate(name="Khách", phone="0909000003", address="HCM", notes=None)
+    customer = sale_service.customers.resolve_customer(
+        name="Khách", phone="0909000003", address="HCM", notes=None
     )
-    piano = service.pianos.create(
+    sale_service.db.commit()
+    sale_service.db.refresh(customer)
+    lead = lead_service.create(
+        LeadCreate(customer_id=customer.id, budget_min=30000000, budget_max=50000000)
+    )
+    piano = sale_service.pianos.create(
         PianoCreate(
             brand="Kawai",
             model="K-300",
@@ -124,11 +133,19 @@ def test_sale_service_rolls_back_when_commit_fails(db_session):
     )
 
     try:
-        service.create(payload)
+        sale_service.create(payload)
     except Exception as exc:
         assert str(exc) == "commit failed"
 
     assert db_session.rollback_called is True
+    assert db_session.query(Sale).count() == 0
+    assert db_session.query(Warranty).count() == 0
+    refreshed_piano = db_session.get(type(piano), piano.id)
+    assert refreshed_piano is not None
+    assert refreshed_piano.status == PianoStatus.AVAILABLE
+    refreshed_lead = lead_service.repo.get_by_id(lead.id)
+    assert refreshed_lead is not None
+    assert refreshed_lead.status != LeadStatus.CONVERTED
 
 
 @pytest.mark.skipif(not _is_postgres_test_url(), reason="PostgreSQL test database not configured")

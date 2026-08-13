@@ -69,14 +69,24 @@ class DashboardService:
     def _sales_by_month(self, today: date) -> list[MonthlySalesPoint]:
         starts = [_month_start(today, offset) for offset in range(-5, 1)]
         first = starts[0]
-        sales_dates = list(self.db.scalars(select(Sale.sale_date).where(Sale.sale_date >= first)).all())
         counts: OrderedDict[tuple[int, int], int] = OrderedDict(
             ((item.year, item.month), 0) for item in starts
         )
-        for sold_at in sales_dates:
-            key = (sold_at.year, sold_at.month)
+        year_expr = func.extract("year", Sale.sale_date)
+        month_expr = func.extract("month", Sale.sale_date)
+        rows = self.db.execute(
+            select(
+                year_expr.label("year"),
+                month_expr.label("month"),
+                func.count(Sale.id).label("count"),
+            )
+            .where(Sale.sale_date >= first)
+            .group_by(year_expr, month_expr)
+        )
+        for row in rows:
+            key = (int(row.year), int(row.month))
             if key in counts:
-                counts[key] += 1
+                counts[key] = int(row.count)
         return [
             MonthlySalesPoint(month=f"{MONTHS_VI[month - 1]}/{str(year)[-2:]}", count=count)
             for (year, month), count in counts.items()

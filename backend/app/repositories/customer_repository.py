@@ -36,6 +36,11 @@ class CustomerRepository:
         )
         return list(self.db.scalars(stmt).all())
 
+    def create_entity(self, *, name: str, phone: str, address: str | None, notes: str | None) -> Customer:
+        entity = Customer(name=name, phone=phone, address=address, notes=notes)
+        self.db.add(entity)
+        return entity
+
     def create(self, data: CustomerCreate) -> Customer:
         entity = Customer(**data.model_dump())
         self.db.add(entity)

@@ -34,7 +34,6 @@ class MaintenanceService:
         piano = self.pianos.get(data.piano_id)
         if not piano:
             raise NotFoundError("Không tìm thấy đàn")
-        # A service record can only be attached to a piano purchased by that customer.
         if not piano.sale or piano.sale.customer_id != data.customer_id:
             raise BusinessRuleError("Đàn không thuộc lịch sử mua của khách hàng này")
         return ServiceRecordRead.model_validate(self.repo.create(data))

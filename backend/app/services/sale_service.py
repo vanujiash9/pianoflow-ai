@@ -9,14 +9,15 @@ from sqlalchemy.orm import Session
 
 from app.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
 from app.models.customer import Customer
-from app.models.enums import PianoStatus
+from app.models.enums import LeadStatus, PianoStatus
 from app.models.piano import Piano
 from app.models.warranty import Warranty
-from app.repositories.customer_repository import CustomerRepository
 from app.repositories.piano_repository import PianoRepository
 from app.repositories.sale_repository import SaleRepository
 from app.schemas.customer import CustomerInput
 from app.schemas.sale import SaleCreate, SaleDetail
+from app.services.customer_service import CustomerService
+from app.services.lead_service import LeadService
 
 
 def _add_months(value: date, months: int) -> date:
@@ -31,7 +32,8 @@ class SaleService:
     def __init__(self, db: Session) -> None:
         self.db = db
         self.sales = SaleRepository(db)
-        self.customers = CustomerRepository(db)
+        self.customers = CustomerService(db)
+        self.leads = LeadService(db)
         self.pianos = PianoRepository(db)
 
     def list(self) -> list[SaleDetail]:
@@ -40,21 +42,22 @@ class SaleService:
     def create(self, data: SaleCreate) -> SaleDetail:
         customer = self._resolve_customer(data.customer_id, data.customer)
         piano = self._resolve_piano(data.piano_id, data.serial_number)
-        self._apply_inventory_sale_rules(piano)
-        sale = self.sales.create(
-            customer_id=customer.id,
-            piano_id=piano.id,
-            sale_date=data.sale_date,
-            notes=data.notes,
-        )
-        warranty = Warranty(
-            sale_id=sale.id,
-            start_date=data.sale_date,
-            end_date=_add_months(data.sale_date, data.warranty_months),
-            notes=data.notes,
-        )
-        self.db.add(warranty)
         try:
+            self._apply_inventory_sale_rules(piano)
+            sale = self.sales.create(
+                customer_id=customer.id,
+                piano_id=piano.id,
+                sale_date=data.sale_date,
+                notes=data.notes,
+            )
+            warranty = Warranty(
+                sale_id=sale.id,
+                start_date=data.sale_date,
+                end_date=_add_months(data.sale_date, data.warranty_months),
+                notes=data.notes,
+            )
+            self.db.add(warranty)
+            self.leads.update_status_if_active(customer.id, LeadStatus.CONVERTED)
             self.db.commit()
         except Exception:
             self.db.rollback()
@@ -63,26 +66,18 @@ class SaleService:
 
     def _resolve_customer(self, customer_id: uuid.UUID | None, customer: CustomerInput | None) -> Customer:
         if customer_id:
-            entity = self.customers.get(customer_id)
+            entity = self.customers.repo.get(customer_id)
             if not entity:
                 raise NotFoundError("Không tìm thấy khách hàng")
             return entity
         if not customer:
             raise BusinessRuleError("Phải cung cấp khách hàng hoặc customer_id")
-        entity = self.customers.get_by_phone(customer.phone)
-        if entity:
-            if customer.name and customer.name != entity.name:
-                entity.name = customer.name
-            if customer.address and customer.address != entity.address:
-                entity.address = customer.address
-            if customer.notes and customer.notes != entity.notes:
-                entity.notes = customer.notes
-            self.db.flush()
-            return entity
-        entity = Customer(name=customer.name, phone=customer.phone, address=customer.address, notes=customer.notes)
-        self.db.add(entity)
-        self.db.flush()
-        return entity
+        return self.customers.resolve_customer(
+            name=customer.name,
+            phone=customer.phone,
+            address=customer.address,
+            notes=customer.notes,
+        )
 
     def _resolve_piano(self, piano_id: uuid.UUID | None, serial_number: str | None) -> Piano:
         if piano_id:

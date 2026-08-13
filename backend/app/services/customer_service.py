@@ -10,6 +10,7 @@ from app.core.exceptions import ConflictError, NotFoundError
 from app.repositories.customer_repository import CustomerRepository
 from app.repositories.sale_repository import SaleRepository
 from app.repositories.service_repository import ServiceRepository
+from app.schemas.common import normalize_phone_number
 from app.schemas.customer import (
     CustomerCreate,
     CustomerProfile,
@@ -22,6 +23,7 @@ from app.schemas.customer import (
 
 class CustomerService:
     def __init__(self, db: Session) -> None:
+        self.db = db
         self.repo = CustomerRepository(db)
         self.sales = SaleRepository(db)
         self.services = ServiceRepository(db)
@@ -80,13 +82,51 @@ class CustomerService:
             services=service_items,
         )
 
-    def create(self, data: CustomerCreate) -> CustomerRead:
-        phone = data.phone
-        if self.repo.get_by_phone(phone):
+    def resolve_customer(
+        self,
+        *,
+        name: str,
+        phone: str,
+        address: str | None = None,
+        notes: str | None = None,
+    ):
+        normalized_phone = normalize_phone_number(phone)
+        if not normalized_phone:
             raise ConflictError("Số điện thoại đã tồn tại")
+
+        entity = self.repo.get_by_phone(normalized_phone)
+        if entity:
+            return entity
+
+        entity = self.repo.create_entity(
+            name=name,
+            phone=normalized_phone,
+            address=address,
+            notes=notes,
+        )
         try:
-            return CustomerRead.model_validate(self.repo.create(data))
+            self.db.flush()
         except IntegrityError as exc:
+            self.db.rollback()
+            existing = self.repo.get_by_phone(normalized_phone)
+            if existing:
+                return existing
+            raise ConflictError("Số điện thoại đã tồn tại") from exc
+        return entity
+
+    def create(self, data: CustomerCreate) -> CustomerRead:
+        try:
+            customer = self.resolve_customer(
+                name=data.name,
+                phone=data.phone,
+                address=data.address,
+                notes=data.notes,
+            )
+            self.db.commit()
+            self.db.refresh(customer)
+            return CustomerRead.model_validate(customer)
+        except IntegrityError as exc:
+            self.db.rollback()
             raise ConflictError("Không thể tạo khách hàng do dữ liệu bị trùng") from exc
 
     def update(self, customer_id: uuid.UUID, data: CustomerUpdate) -> CustomerRead:
@@ -95,4 +135,7 @@ class CustomerService:
             raise NotFoundError("Không tìm thấy khách hàng")
         if data.phone and data.phone != entity.phone and self.repo.get_by_phone(data.phone):
             raise ConflictError("Số điện thoại đã tồn tại")
-        return CustomerRead.model_validate(self.repo.update(entity, data))
+        updated = self.repo.update(entity, data)
+        self.db.commit()
+        self.db.refresh(updated)
+        return CustomerRead.model_validate(updated)

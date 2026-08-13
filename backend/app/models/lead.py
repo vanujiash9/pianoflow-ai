@@ -3,8 +3,8 @@ from __future__ import annotations
 import uuid
 from datetime import date
 
-from sqlalchemy import Date, Enum, Integer, String, Text
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy import Date, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
 from app.models.base import TimestampMixin
@@ -15,8 +15,7 @@ class Lead(TimestampMixin, Base):
     __tablename__ = "leads"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    customer_name: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
-    phone: Mapped[str] = mapped_column(String(30), nullable=False, index=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customers.id"), nullable=False, index=True)
     budget_min: Mapped[int | None] = mapped_column(Integer)
     budget_max: Mapped[int | None] = mapped_column(Integer)
     interested_brand: Mapped[str | None] = mapped_column(String(80))
@@ -26,3 +25,5 @@ class Lead(TimestampMixin, Base):
     )
     follow_up_date: Mapped[date | None] = mapped_column(Date, index=True)
     notes: Mapped[str | None] = mapped_column(Text)
+
+    customer = relationship("Customer")
