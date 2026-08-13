@@ -1,19 +1,16 @@
 import { Printer } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 
 import { PageHeader } from '../../components/ui/PageHeader'
-import { ApiError } from '../../lib/api'
+import { api, fmtDate } from '../../lib/api'
+import type { Sale, Warranty } from '../../types'
 import { formatPrintDate, SHOP_ADDRESS, SHOP_PHONES, SHOP_TITLE } from './lib/warranty-print'
 import { createWarrantySale, type WarrantySaleResponse } from './lib/api'
 
 import './warranties-print.css'
 
 interface WarrantyFormState {
-  customerName: string
-  customerPhone: string
-  customerAddress: string
-  serialNumber: string
-  warrantyMonths: string
+  saleId: string
   notes: string
   printDateTime: string
 }
@@ -23,86 +20,51 @@ function getLocalDateTimeValue(date = new Date()): string {
   return new Date(date.getTime() - offset).toISOString().slice(0, 16)
 }
 
-function getWarrantyEndText(dateTimeValue: string, monthsValue: string): string {
-  const months = Number(monthsValue) || 0
-  const baseDate = dateTimeValue ? new Date(dateTimeValue) : new Date()
-  const endDate = new Date(baseDate)
-  endDate.setMonth(endDate.getMonth() + months)
-  return formatPrintDate(endDate)
-}
-
 const initialState: WarrantyFormState = {
-  customerName: '',
-  customerPhone: '',
-  customerAddress: '',
-  serialNumber: '',
-  warrantyMonths: '12',
+  saleId: '',
   notes: '',
   printDateTime: getLocalDateTimeValue(),
 }
 
 export function WarrantiesPrintPage() {
+  const [sales, setSales] = useState<Sale[]>([])
+  const [warranties, setWarranties] = useState<Warranty[]>([])
   const [form, setForm] = useState<WarrantyFormState>(initialState)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [savedSale, setSavedSale] = useState<WarrantySaleResponse | null>(null)
+  const [savedWarranty, setSavedWarranty] = useState<WarrantySaleResponse | null>(null)
 
-  const printDateText = useMemo(() => {
-    if (!form.printDateTime) return formatPrintDate(new Date())
-    return formatPrintDate(new Date(form.printDateTime))
-  }, [form.printDateTime])
+  useEffect(() => {
+    void api<Sale[]>('/sales').then(setSales).catch(() => setSales([]))
+    void api<Warranty[]>('/warranties').then(setWarranties).catch(() => setWarranties([]))
+  }, [])
 
-  const warrantyEndText = useMemo(
-    () => getWarrantyEndText(form.printDateTime, form.warrantyMonths),
-    [form.printDateTime, form.warrantyMonths],
-  )
-
-  const updateField = <K extends keyof WarrantyFormState>(key: K, value: WarrantyFormState[K]) => {
-    setForm((current) => ({ ...current, [key]: value }))
-  }
+  const selectedSale = sales.find((sale) => sale.id === form.saleId) ?? null
+  const selectedWarranty = warranties.find((item) => item.sale_id === form.saleId) ?? null
+  const printDateText = form.printDateTime ? formatPrintDate(new Date(form.printDateTime)) : formatPrintDate(new Date())
+  const warrantyEndText = selectedWarranty?.end_date ? formatPrintDate(new Date(selectedWarranty.end_date)) : selectedSale?.warranty_end_date ? formatPrintDate(new Date(selectedSale.warranty_end_date)) : '—'
+  const warrantyStartText = selectedWarranty?.start_date ? formatPrintDate(new Date(selectedWarranty.start_date)) : selectedSale?.sale_date ? fmtDate(selectedSale.sale_date) : '—'
 
   const submitAndPrint = async () => {
-    if (saving) return
-
-    const customerName = form.customerName.trim()
-    const customerPhone = form.customerPhone.trim()
-    const customerAddress = form.customerAddress.trim()
-    const serialNumber = form.serialNumber.trim()
-
-    if (!customerName || !customerPhone || !serialNumber) {
-      setError('Nhập đủ tên khách hàng, số điện thoại và serial đàn.')
-      return
-    }
-
-    const warrantyMonths = Number(form.warrantyMonths)
-    if (!Number.isInteger(warrantyMonths) || warrantyMonths <= 0) {
-      setError('Thời hạn bảo hành phải lớn hơn 0.')
-      return
-    }
-
+    if (saving || !selectedSale) return
     setSaving(true)
     setError(null)
     try {
       const result = await createWarrantySale({
         customer: {
-          name: customerName,
-          phone: customerPhone,
-          address: customerAddress,
+          name: selectedSale.customer_name,
+          phone: selectedSale.customer_phone,
+          address: selectedWarranty?.customer_address || '',
         },
-        serial_number: serialNumber,
-        sale_date: form.printDateTime ? form.printDateTime.slice(0, 10) : new Date().toISOString().slice(0, 10),
-        warranty_months: warrantyMonths,
+        serial_number: selectedSale.serial_number,
+        sale_date: selectedSale.sale_date,
+        warranty_months: 12,
         notes: form.notes.trim() || null,
       })
-      setSavedSale(result)
-      setError(null)
-      setTimeout(() => {
-        requestAnimationFrame(() => {
-          window.print()
-        })
-      }, 0)
+      setSavedWarranty(result)
+      setTimeout(() => requestAnimationFrame(() => window.print()), 0)
     } catch (err: unknown) {
-      setError(err instanceof ApiError ? err.message : 'Không thể lưu phiếu bảo hành.')
+      setError(err instanceof Error ? err.message : 'Không thể lưu phiếu bảo hành.')
     } finally {
       setSaving(false)
     }
@@ -112,178 +74,120 @@ export function WarrantiesPrintPage() {
     <div className="warranty-create-page">
       <PageHeader
         title="Phiếu bảo hành"
-        subtitle="Điền thông tin rồi lưu trước khi in."
-        actions={
-          <button type="button" className="primary-button print-hide" onClick={submitAndPrint} disabled={saving}>
-            <Printer size={16} />
-            {saving ? 'Đang lưu...' : 'Lưu & in phiếu'}
-          </button>
-        }
+        subtitle="Chọn giao dịch rồi lưu trước khi in."
+        actions={<button type="button" className="primary-button print-hide" onClick={submitAndPrint} disabled={saving || !selectedSale}><Printer size={16} />{saving ? 'Đang lưu...' : 'Lưu & in phiếu'}</button>}
       />
 
       <div className="warranty-create-layout">
         <form className="panel warranty-create-form print-hide" onSubmit={(event) => event.preventDefault()}>
           <div className="warranty-form-heading">
-            <div className="warranty-form-heading-icon">
-              <Printer size={18} />
-            </div>
+            <div className="warranty-form-heading-icon"><Printer size={18} /></div>
             <div>
               <h3>Thông tin phiếu</h3>
-              <p>Điền dữ liệu trước khi in.</p>
+              <p>Chọn sale đã có sẵn để tự điền khách hàng, đàn và serial.</p>
             </div>
           </div>
 
           <div className="warranty-form-fields">
+            <label className="warranty-field span-2">
+              <span>Giao dịch đã bán</span>
+              <select value={form.saleId} onChange={(event) => setForm((current) => ({ ...current, saleId: event.target.value }))}>
+                <option value="">Chọn sale</option>
+                {sales.map((sale) => <option key={sale.id} value={sale.id}>{sale.customer_name} · {sale.piano_name}{sale.serial_number ? ` · ${sale.serial_number}` : ''}</option>)}
+              </select>
+            </label>
             <label className="warranty-field">
               <span>Khách hàng</span>
-              <input value={form.customerName} onChange={(event) => updateField('customerName', event.target.value)} placeholder="Nguyễn Văn A" />
+              <input value={selectedSale?.customer_name || ''} readOnly />
             </label>
             <label className="warranty-field">
               <span>Số điện thoại</span>
-              <input value={form.customerPhone} onChange={(event) => updateField('customerPhone', event.target.value)} placeholder="0901234567" />
+              <input value={selectedSale?.customer_phone || ''} readOnly />
             </label>
             <label className="warranty-field span-2">
               <span>Địa chỉ</span>
-              <input value={form.customerAddress} onChange={(event) => updateField('customerAddress', event.target.value)} placeholder="Quận 12, TP.HCM" />
+              <input value={selectedWarranty?.customer_address || '—'} readOnly />
             </label>
             <label className="warranty-field">
-              <span>Serial đàn</span>
-              <input value={form.serialNumber} onChange={(event) => updateField('serialNumber', event.target.value)} placeholder="AB123456" />
+              <span>Đàn</span>
+              <input value={selectedSale?.piano_name || ''} readOnly />
             </label>
             <label className="warranty-field">
-              <span>Thời hạn bảo hành (tháng)</span>
-              <input type="number" min="1" max="120" value={form.warrantyMonths} onChange={(event) => updateField('warrantyMonths', event.target.value)} />
+              <span>Serial</span>
+              <input value={selectedSale?.serial_number || ''} readOnly />
+            </label>
+            <label className="warranty-field">
+              <span>Ngày bán</span>
+              <input value={selectedSale ? fmtDate(selectedSale.sale_date) : ''} readOnly />
+            </label>
+            <label className="warranty-field">
+              <span>Ngày bắt đầu</span>
+              <input value={warrantyStartText} readOnly />
+            </label>
+            <label className="warranty-field">
+              <span>Ngày hết hạn</span>
+              <input value={warrantyEndText} readOnly />
             </label>
             <label className="warranty-field span-2">
               <span>Ngày giờ in</span>
-              <input type="datetime-local" value={form.printDateTime} onChange={(event) => updateField('printDateTime', event.target.value)} />
+              <input type="datetime-local" value={form.printDateTime} onChange={(event) => setForm((current) => ({ ...current, printDateTime: event.target.value }))} />
             </label>
             <label className="warranty-field span-2">
               <span>Ghi chú</span>
-              <textarea rows={4} value={form.notes} onChange={(event) => updateField('notes', event.target.value)} placeholder="Điền lưu ý nếu có" />
+              <textarea rows={4} value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Điền lưu ý nếu có" />
             </label>
           </div>
           {error ? <p className="warranty-form-error">{error}</p> : null}
-          {savedSale ? (
-            <p className="warranty-save-success">
-              Đã lưu phiếu {savedSale.id.slice(0, 8).toUpperCase()}
-            </p>
-          ) : null}
+          {savedWarranty ? <p className="warranty-save-success">Đã lưu phiếu {savedWarranty.id.slice(0, 8).toUpperCase()}</p> : null}
         </form>
 
         <section className="warranty-preview-panel">
           <div className="warranty-preview-scroll">
             <div className="warranty-print-document">
               <header className="warranty-print-header">
-                <div className="warranty-print-brand">
-                  <div className="warranty-print-logo-mark">PS</div>
-                </div>
+                <div className="warranty-print-brand"><div className="warranty-print-logo-mark">PS</div></div>
                 <div className="warranty-print-shopinfo">
                   <div className="warranty-print-shopname">{SHOP_TITLE}</div>
                   <div className="warranty-print-location-label">Trụ sở chính / Kho TP.HCM:</div>
                   <div className="warranty-print-address">{SHOP_ADDRESS}</div>
-                  <div className="warranty-print-phones">
-                    {SHOP_PHONES.map((phone) => (
-                      <span key={phone}>{phone}</span>
-                    ))}
-                  </div>
+                  <div className="warranty-print-phones">{SHOP_PHONES.map((phone) => <span key={phone}>{phone}</span>)}</div>
                 </div>
                 <div className="warranty-print-header-spacer" />
               </header>
-
               <div className="warranty-print-header-line" />
-
               <div className="warranty-print-title-wrap">
                 <div className="warranty-print-main-title">
                   <h1>PHIẾU BẢO HÀNH</h1>
-                  <div className="warranty-print-ornament">
-                    <span />
-                    <b>◆</b>
-                    <i>◇</i>
-                    <b>◆</b>
-                    <span />
-                  </div>
+                  <div className="warranty-print-ornament"><span /><b>◆</b><i>◇</i><b>◆</b><span /></div>
                 </div>
-                <div className="warranty-print-code">
-                  <span>Mã phiếu:</span>
-                  <strong>{savedSale ? `BH-${savedSale.id.slice(0, 8).toUpperCase()}` : 'BH-TẠM'}</strong>
-                </div>
+                <div className="warranty-print-code"><span>Mã phiếu:</span><strong>{savedWarranty ? `BH-${savedWarranty.id.slice(0, 8).toUpperCase()}` : 'BH-TẠM'}</strong></div>
               </div>
-
               <section className="warranty-print-section">
                 <div className="warranty-print-section-title">1. THÔNG TIN KHÁCH HÀNG</div>
-                <table className="warranty-print-table">
-                  <tbody>
-                    <tr>
-                      <th>Họ tên khách hàng</th>
-                      <td><strong>{savedSale?.customer_name || form.customerName || '—'}</strong></td>
-                    </tr>
-                    <tr>
-                      <th>Số điện thoại</th>
-                      <td><strong>{savedSale?.customer_phone || form.customerPhone || '—'}</strong></td>
-                    </tr>
-                    <tr>
-                      <th>Địa chỉ</th>
-                      <td>{savedSale?.customer_address || form.customerAddress || '—'}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <table className="warranty-print-table"><tbody>
+                  <tr><th>Họ tên khách hàng</th><td><strong>{selectedSale?.customer_name || '—'}</strong></td></tr>
+                  <tr><th>Số điện thoại</th><td><strong>{selectedSale?.customer_phone || '—'}</strong></td></tr>
+                  <tr><th>Địa chỉ</th><td>{selectedWarranty?.customer_address || '—'}</td></tr>
+                </tbody></table>
               </section>
-
               <section className="warranty-print-section">
                 <div className="warranty-print-section-title">2. THÔNG TIN SẢN PHẨM</div>
-                <table className="warranty-print-table">
-                  <tbody>
-                    <tr>
-                      <th>Số Serial</th>
-                      <td>{savedSale?.serial_number || form.serialNumber || '—'}</td>
-                    </tr>
-                    <tr>
-                      <th>Ngày in phiếu</th>
-                      <td>{printDateText}</td>
-                    </tr>
-                    <tr>
-                      <th>Thời hạn bảo hành</th>
-                      <td>{form.warrantyMonths || '0'} tháng</td>
-                    </tr>
-                    <tr>
-                      <th>Ngày hết hạn bảo hành</th>
-                      <td>{savedSale?.warranty_end_date ? formatPrintDate(new Date(savedSale.warranty_end_date)) : warrantyEndText}</td>
-                    </tr>
-                  </tbody>
-                </table>
+                <table className="warranty-print-table"><tbody>
+                  <tr><th>Sản phẩm</th><td>{selectedSale?.piano_name || '—'}</td></tr>
+                  <tr><th>Số Serial</th><td>{selectedSale?.serial_number || '—'}</td></tr>
+                  <tr><th>Ngày bán</th><td>{selectedSale ? fmtDate(selectedSale.sale_date) : '—'}</td></tr>
+                  <tr><th>Ngày bắt đầu</th><td>{warrantyStartText}</td></tr>
+                  <tr><th>Ngày hết hạn bảo hành</th><td>{warrantyEndText}</td></tr>
+                </tbody></table>
               </section>
-
               <section className="warranty-print-section warranty-print-text-section">
                 <div className="warranty-print-section-title">3. GHI CHÚ</div>
-                <div className="warranty-print-notes-box">{savedSale?.notes || form.notes || '—'}</div>
+                <div className="warranty-print-notes-box">{selectedSale?.notes || form.notes || '—'}</div>
               </section>
-
               <div className="warranty-print-footer-note">TP. Hồ Chí Minh, ngày {printDateText}</div>
-
               <footer className="warranty-print-signatures">
-                <div className="warranty-print-signature">
-                  <strong>KHÁCH HÀNG</strong>
-                  <span>(Ký và ghi rõ họ tên)</span>
-                  <div className="warranty-print-customer-sign-line" />
-                </div>
-                <div className="warranty-print-signature">
-                  <strong>ĐẠI DIỆN CỬA HÀNG</strong>
-                  <span>(Ký và ghi rõ họ tên)</span>
-                  <div className="warranty-print-shop-signature-area">
-                    <div className="warranty-print-stamp">
-                      <div className="warranty-print-stamp-ring">
-                        <small>PIANO • SOLNA</small>
-                        <div>
-                          PIANO
-                          <br />
-                          SOLNA
-                        </div>
-                      </div>
-                    </div>
-                    <div className="warranty-print-signature-writing">Piano Solna</div>
-                  </div>
-                </div>
+                <div className="warranty-print-signature"><strong>KHÁCH HÀNG</strong><span>(Ký và ghi rõ họ tên)</span><div className="warranty-print-customer-sign-line" /></div>
+                <div className="warranty-print-signature"><strong>ĐẠI DIỆN CỬA HÀNG</strong><span>(Ký và ghi rõ họ tên)</span><div className="warranty-print-shop-signature-area"><div className="warranty-print-stamp"><div className="warranty-print-stamp-ring"><small>PIANO • SOLNA</small><div>PIANO<br />SOLNA</div></div></div><div className="warranty-print-signature-writing">Piano Solna</div></div></div>
               </footer>
             </div>
           </div>
@@ -291,5 +195,4 @@ export function WarrantiesPrintPage() {
       </div>
     </div>
   )
-
 }

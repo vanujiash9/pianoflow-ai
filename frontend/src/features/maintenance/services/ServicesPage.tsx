@@ -1,27 +1,10 @@
-import {
-  CalendarDays,
-  CheckCircle2,
-  CircleX,
-  Plus,
-  Search,
-  Wrench,
-} from 'lucide-react'
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { CalendarDays, CheckCircle2, CircleX, Plus, Search, Wrench } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 
-import { Modal } from '../../../components/ui/Modal'
+import { Drawer } from '../../../components/ui/Drawer'
 import { PageHeader } from '../../../components/ui/PageHeader'
 import { api, fmtDate } from '../../../lib/api'
-import type {
-  Customer,
-  Piano,
-  Sale,
-  ServiceRecord,
-  ServiceStatus,
-} from '../../../types'
+import type { Customer, Piano, Sale, ServiceRecord, ServiceStatus } from '../../../types'
 
 import './services.css'
 
@@ -769,256 +752,64 @@ export function ServicesPage() {
         )}
       </section>
 
-      {/* CREATE MODAL */}
-      <Modal
-        open={open}
-        title="Thêm lịch bảo trì"
-        onClose={() => {
-          if (!saving) {
-            setOpen(false)
-          }
-        }}
-      >
-        <form
-          className="service-form"
-          onSubmit={create}
-        >
+      <Drawer open={open} title="Thêm lịch bảo trì" onClose={() => { if (!saving) setOpen(false) }}>
+        <form className="service-form" onSubmit={create}>
           <div className="service-form-grid">
             <label>
               <span>Khách hàng</span>
-
-              <select
-                required
-                value={form.customer_id}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    customer_id:
-                      event.target.value,
-                    piano_id: '',
-                  })
-                }
-              >
-                <option value="">
-                  Chọn khách
-                </option>
-
-                {customers.map(
-                  (customer) => (
-                    <option
-                      key={customer.id}
-                      value={customer.id}
-                    >
-                      {customer.name} ·{' '}
-                      {customer.phone}
-                    </option>
-                  ),
-                )}
+              <select required value={form.customer_id} onChange={(event) => setForm({ ...form, customer_id: event.target.value, piano_id: '' })}>
+                <option value="">Chọn khách</option>
+                {customers.map((customer) => <option key={customer.id} value={customer.id}>{customer.name} · {customer.phone}</option>)}
               </select>
             </label>
-
             <label>
               <span>Đàn khách đã mua</span>
-
-              <select
-                required
-                disabled={
-                  !form.customer_id
-                }
-                value={form.piano_id}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    piano_id:
-                      event.target.value,
-                  })
-                }
-              >
-                <option value="">
-                  {form.customer_id
-                    ? 'Chọn đàn'
-                    : 'Chọn khách trước'}
-                </option>
-
-                {customerPianos.map(
-                  (piano) => (
-                    <option
-                      key={piano.id}
-                      value={piano.id}
-                    >
-                      {piano.brand}{' '}
-                      {piano.model}
-                      {piano.serial_number
-                        ? ` · ${piano.serial_number}`
-                        : ''}
-                    </option>
-                  ),
-                )}
+              <select required disabled={!form.customer_id} value={form.piano_id} onChange={(event) => setForm({ ...form, piano_id: event.target.value })}>
+                <option value="">{form.customer_id ? 'Chọn đàn' : 'Chọn khách trước'}</option>
+                {customerPianos.map((piano) => <option key={piano.id} value={piano.id}>{piano.brand} {piano.model}{piano.serial_number ? ` · ${piano.serial_number}` : ''}</option>)}
               </select>
             </label>
-
             <label>
               <span>Ngày bảo trì</span>
-
-              <input
-                type="date"
-                required
-                value={form.service_date}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    service_date:
-                      event.target.value,
-                  })
-                }
-              />
+              <input type="date" required value={form.service_date} onChange={(event) => setForm({ ...form, service_date: event.target.value })} />
             </label>
-
             <label>
               <span>Loại công việc</span>
-
-              <select
-                required
-                value={form.service_type}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    service_type:
-                      event.target.value,
-                  })
-                }
-              >
-                <option value="Bảo trì định kỳ">
-                  Bảo trì định kỳ
-                </option>
-
-                <option value="Lên dây">
-                  Lên dây
-                </option>
-
-                <option value="Sửa chữa">
-                  Sửa chữa
-                </option>
-
-                <option value="Kiểm tra">
-                  Kiểm tra
-                </option>
-
-                <option value="Vệ sinh">
-                  Vệ sinh
-                </option>
+              <select required value={form.service_type} onChange={(event) => setForm({ ...form, service_type: event.target.value })}>
+                <option value="Bảo trì định kỳ">Bảo trì định kỳ</option>
+                <option value="Lên dây">Lên dây</option>
+                <option value="Sửa chữa">Sửa chữa</option>
+                <option value="Kiểm tra">Kiểm tra</option>
+                <option value="Vệ sinh">Vệ sinh</option>
               </select>
             </label>
-
             <label className="span-2">
               <span>Mô tả công việc</span>
-
-              <textarea
-                rows={3}
-                value={form.description}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    description:
-                      event.target.value,
-                  })
-                }
-                placeholder="Ví dụ: Lên dây, vệ sinh tổng thể, kiểm tra pedal..."
-              />
+              <textarea rows={3} value={form.description} onChange={(event) => setForm({ ...form, description: event.target.value })} placeholder="Ví dụ: Lên dây, vệ sinh tổng thể, kiểm tra pedal..." />
             </label>
-
             <label>
-              <span>
-                Lịch tiếp theo
-              </span>
-
-              <input
-                type="date"
-                value={
-                  form.next_service_date
-                }
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    next_service_date:
-                      event.target.value,
-                  })
-                }
-              />
+              <span>Lịch tiếp theo</span>
+              <input type="date" value={form.next_service_date} onChange={(event) => setForm({ ...form, next_service_date: event.target.value })} />
             </label>
-
             <label>
               <span>Trạng thái</span>
-
-              <select
-                value={form.status}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    status:
-                      event.target
-                        .value as ServiceStatus,
-                  })
-                }
-              >
-                <option value="scheduled">
-                  Đã hẹn
-                </option>
-
-                <option value="completed">
-                  Hoàn tất
-                </option>
-
-                <option value="cancelled">
-                  Đã hủy
-                </option>
+              <select value={form.status} onChange={(event) => setForm({ ...form, status: event.target.value as ServiceStatus })}>
+                <option value="scheduled">Đã hẹn</option>
+                <option value="completed">Hoàn tất</option>
+                <option value="cancelled">Đã hủy</option>
               </select>
             </label>
-
             <label className="span-2">
-              <span>
-                Ghi chú nội bộ
-              </span>
-
-              <textarea
-                rows={2}
-                value={form.notes}
-                onChange={(event) =>
-                  setForm({
-                    ...form,
-                    notes:
-                      event.target.value,
-                  })
-                }
-                placeholder="Thông tin thêm nếu cần..."
-              />
+              <span>Ghi chú nội bộ</span>
+              <textarea rows={2} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} placeholder="Thông tin thêm nếu cần..." />
             </label>
           </div>
-
           <div className="service-form-actions">
-            <button
-              type="button"
-              className="secondary-button"
-              disabled={saving}
-              onClick={() =>
-                setOpen(false)
-              }
-            >
-              Hủy
-            </button>
-
-            <button
-              type="submit"
-              className="primary-button"
-              disabled={saving}
-            >
-              {saving
-                ? 'Đang lưu...'
-                : 'Lưu lịch'}
-            </button>
+            <button type="button" className="secondary-button" disabled={saving} onClick={() => setOpen(false)}>Hủy</button>
+            <button type="submit" className="primary-button" disabled={saving}>{saving ? 'Đang lưu...' : 'Lưu lịch'}</button>
           </div>
         </form>
-      </Modal>
+      </Drawer>
     </div>
   )
 }

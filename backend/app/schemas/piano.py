@@ -13,6 +13,7 @@ from app.schemas.common import ORMModel, StrictModel, normalize_serial_number
 class PianoCreate(StrictModel):
     brand: str = Field(min_length=1, max_length=80)
     model: str = Field(min_length=1, max_length=120)
+    year: int | None = Field(default=None, ge=0)
     serial_number: str | None = Field(default=None, min_length=2, max_length=120)
     piano_type: PianoType = PianoType.UPRIGHT
     size_cm: int | None = Field(default=None, ge=0)
@@ -45,6 +46,7 @@ class PianoCreate(StrictModel):
 class PianoUpdate(StrictModel):
     brand: str | None = Field(default=None, min_length=1, max_length=80)
     model: str | None = Field(default=None, min_length=1, max_length=120)
+    year: int | None = Field(default=None, ge=0)
     serial_number: str | None = Field(default=None, min_length=2, max_length=120)
     piano_type: PianoType | None = None
     size_cm: int | None = Field(default=None, ge=0)
@@ -78,6 +80,7 @@ class PianoRead(ORMModel):
     id: uuid.UUID
     brand: str
     model: str
+    year: int | None
     serial_number: str | None
     piano_type: PianoType
     size_cm: int | None

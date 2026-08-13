@@ -1,26 +1,11 @@
-import {
-  Filter,
-  Piano as PianoIcon,
-  Plus,
-  Search,
-} from 'lucide-react'
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from 'react'
+import { Filter, Piano as PianoIcon, Plus, Search } from 'lucide-react'
+import { useEffect, useMemo, useState } from 'react'
 
-import { Modal } from '../../components/ui/Modal'
+import { Drawer } from '../../components/ui/Drawer'
 import { PageHeader } from '../../components/ui/PageHeader'
 import { StatusBadge } from '../../components/ui/StatusBadge'
-import {
-  api,
-  getCachedResponse,
-} from '../../lib/api'
-import type {
-  Piano,
-  PianoStatus,
-} from '../../types'
+import { api, getCachedResponse } from '../../lib/api'
+import type { Piano, PianoStatus } from '../../types'
 
 import './pianos.css'
 
@@ -428,149 +413,45 @@ export function PianosPage() {
         )}
       </section>
 
-      {/* CREATE */}
-      <Modal
-        open={open}
-        title="Thêm đàn"
-        onClose={() => setOpen(false)}
-      >
-        <form
-          className="form-grid"
-          onSubmit={create}
-        >
+      <Drawer open={open} title="Thêm đàn" onClose={() => setOpen(false)}>
+        <form className="form-grid" onSubmit={create}>
           <label>
             Hãng
-            <input
-              required
-              value={form.brand}
-              onChange={(event) =>
-                setForm({
-                  ...form,
-                  brand:
-                    event.target.value,
-                })
-              }
-            />
+            <input required value={form.brand} onChange={(event) => setForm({ ...form, brand: event.target.value })} />
           </label>
-
           <label>
             Model
-            <input
-              required
-              value={form.model}
-              onChange={(event) =>
-                setForm({
-                  ...form,
-                  model:
-                    event.target.value,
-                })
-              }
-            />
+            <input required value={form.model} onChange={(event) => setForm({ ...form, model: event.target.value })} />
           </label>
-
           <label>
             Serial
-            <input
-              required
-              value={
-                form.serial_number
-              }
-              onChange={(event) =>
-                setForm({
-                  ...form,
-                  serial_number:
-                    event.target.value,
-                })
-              }
-            />
+            <input required value={form.serial_number} onChange={(event) => setForm({ ...form, serial_number: event.target.value })} />
           </label>
-
           <label>
             Năm sản xuất
-            <input
-              type="number"
-              value={form.year}
-              onChange={(event) =>
-                setForm({
-                  ...form,
-                  year:
-                    event.target.value,
-                })
-              }
-            />
+            <input type="number" value={form.year} onChange={(event) => setForm({ ...form, year: event.target.value })} />
           </label>
-
           <label>
             Màu
-            <input
-              value={form.color}
-              onChange={(event) =>
-                setForm({
-                  ...form,
-                  color:
-                    event.target.value,
-                })
-              }
-            />
+            <input value={form.color} onChange={(event) => setForm({ ...form, color: event.target.value })} />
           </label>
-
           <label>
             Tình trạng
-            <select
-              value={form.condition}
-              onChange={(event) =>
-                setForm({
-                  ...form,
-                  condition:
-                    event.target.value,
-                })
-              }
-            >
-              <option value="used">
-                Đã qua sử dụng
-              </option>
-
-              <option value="new">
-                Mới
-              </option>
+            <select value={form.condition} onChange={(event) => setForm({ ...form, condition: event.target.value })}>
+              <option value="used">Đã qua sử dụng</option>
+              <option value="new">Mới</option>
             </select>
           </label>
-
           <label className="span-2">
             Ghi chú
-            <textarea
-              rows={3}
-              value={form.notes}
-              onChange={(event) =>
-                setForm({
-                  ...form,
-                  notes:
-                    event.target.value,
-                })
-              }
-            />
+            <textarea rows={3} value={form.notes} onChange={(event) => setForm({ ...form, notes: event.target.value })} />
           </label>
-
           <div className="form-actions span-2">
-            <button
-              type="button"
-              className="secondary-button"
-              onClick={() =>
-                setOpen(false)
-              }
-            >
-              Hủy
-            </button>
-
-            <button
-              type="submit"
-              className="primary-button"
-            >
-              Lưu đàn
-            </button>
+            <button type="button" className="secondary-button" onClick={() => setOpen(false)}>Hủy</button>
+            <button type="submit" className="primary-button">Lưu đàn</button>
           </div>
         </form>
-      </Modal>
+      </Drawer>
     </div>
   )
 }

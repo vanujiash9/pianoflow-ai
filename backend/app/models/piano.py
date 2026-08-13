@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import uuid
 from datetime import date
-
 from decimal import Decimal
 
 from sqlalchemy import Date, Enum, Integer, Numeric, String, Text
@@ -19,6 +18,7 @@ class Piano(TimestampMixin, Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     brand: Mapped[str] = mapped_column(String(80), nullable=False, index=True)
     model: Mapped[str] = mapped_column(String(120), nullable=False, index=True)
+    year: Mapped[int | None] = mapped_column(Integer)
     serial_number: Mapped[str | None] = mapped_column(String(120), unique=True, index=True)
     piano_type: Mapped[PianoType] = mapped_column(
         Enum(PianoType, native_enum=False), nullable=False, index=True

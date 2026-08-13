@@ -26,11 +26,19 @@ export interface Piano {
   id: string
   brand: string
   model: string
-  serial_number: string
   year: number | null
+  serial_number: string | null
+  piano_type: string
+  size_cm: number | null
+  pedal_count: number | null
+  purchase_price: string | null
+  retail_price: string | null
+  status: PianoStatus
+  quantity: number
+  variant: string | null
+  arrival_date: string | null
   color: string | null
   condition: PianoCondition
-  status: PianoStatus
   notes: string | null
   created_at: string
   updated_at: string
