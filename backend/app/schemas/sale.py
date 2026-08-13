@@ -3,33 +3,31 @@ from __future__ import annotations
 import uuid
 from datetime import date, datetime
 
-from pydantic import Field, field_validator
+from pydantic import Field, model_validator
 
 from app.core.exceptions import BusinessRuleError
-
 from app.schemas.common import ORMModel, StrictModel
+from app.schemas.customer import CustomerInput
 
 
 class SaleCreate(StrictModel):
-    customer_id: uuid.UUID
-    piano_id: uuid.UUID
+    customer_id: uuid.UUID | None = None
+    customer: CustomerInput | None = None
+    piano_id: uuid.UUID | None = None
+    serial_number: str | None = None
     sale_date: date
-    warranty_months: int = Field(default=12, ge=0, le=120)
+    warranty_months: int = Field(default=12, ge=1, le=120)
     notes: str | None = None
 
-    @field_validator("warranty_months")
-    @classmethod
-    def validate_warranty_months(cls, value: int) -> int:
-        if value <= 0:
-            raise BusinessRuleError("Thời hạn bảo hành phải lớn hơn 0")
-        return value
-
-    @field_validator("sale_date")
-    @classmethod
-    def validate_sale_date(cls, value: date) -> date:
-        if value > date.today():
+    @model_validator(mode="after")
+    def validate_payload(self) -> "SaleCreate":
+        if self.customer_id is None and self.customer is None:
+            raise BusinessRuleError("Phải cung cấp khách hàng hoặc customer_id")
+        if self.piano_id is None and not self.serial_number:
+            raise BusinessRuleError("Phải cung cấp piano_id hoặc serial_number")
+        if self.sale_date > date.today():
             raise BusinessRuleError("Ngày bán không được lớn hơn ngày hiện tại")
-        return value
+        return self
 
 
 class SaleRead(ORMModel):
@@ -46,9 +44,12 @@ class SaleDetail(StrictModel):
     customer_id: uuid.UUID
     customer_name: str
     customer_phone: str
+    customer_address: str | None
     piano_id: uuid.UUID
     piano_name: str
     serial_number: str | None
     sale_date: date
-    warranty_end_date: date | None
+    warranty_id: uuid.UUID | None = None
+    warranty_start_date: date | None = None
+    warranty_end_date: date | None = None
     notes: str | None

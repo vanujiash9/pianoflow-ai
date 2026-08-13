@@ -1,5 +1,9 @@
 from __future__ import annotations
 
+from sqlalchemy.exc import OperationalError
+
+from app.services.dashboard_service import DashboardService
+
 from datetime import date
 
 
@@ -131,22 +135,34 @@ def test_piano_update_allows_new_fields(client):
     assert body["quantity"] == 2
 
 
-def test_sale_marks_serialized_piano_sold_and_creates_warranty(client):
-    customer = create_customer(client)
+def test_warranty_sale_flow_reuses_customer_and_commits_atomic(client):
+    customer = create_customer(client, phone="0907 111 222")
     piano = create_piano(client)
 
     response = client.post(
         "/api/v1/sales",
         json={
-            "customer_id": customer["id"],
-            "piano_id": piano["id"],
+            "customer": {
+                "name": "Khách Test Mới",
+                "phone": "0907 111 222",
+                "address": "Quận 12, TP.HCM",
+                "notes": "ghi chú",
+            },
+            "serial_number": piano["serial_number"],
             "sale_date": date.today().isoformat(),
             "warranty_months": 12,
             "notes": "test",
         },
     )
     assert response.status_code == 201, response.text
-    assert response.json()["warranty_end_date"] is not None
+    body = response.json()
+    assert body["customer_id"] == customer["id"]
+    assert body["warranty_id"] is not None
+    assert body["warranty_end_date"] is not None
+
+    customers = client.get("/api/v1/customers", params={"search": "0907111222"}).json()
+    assert len(customers) == 1
+    assert customers[0]["name"] == "Khách Test Mới"
 
     piano_response = client.get(f"/api/v1/pianos/{piano['id']}")
     assert piano_response.json()["status"] == "sold"
@@ -185,6 +201,126 @@ def test_sale_decrements_non_serialized_stock(client):
     assert body["status"] == "available"
 
 
+def test_sale_sale_end_date_uses_calendar_months(client):
+    customer = create_customer(client, phone="0909000007")
+    piano = create_piano(client, serial="END-DATE-001")
+
+    response = client.post(
+        "/api/v1/sales",
+        json={
+            "customer_id": customer["id"],
+            "piano_id": piano["id"],
+            "sale_date": "2026-01-31",
+            "warranty_months": 1,
+            "notes": None,
+        },
+    )
+    assert response.status_code == 201, response.text
+    assert response.json()["warranty_end_date"] == "2026-02-28"
+
+
+def test_sale_rejects_missing_or_unavailable_piano(client):
+    customer = create_customer(client, phone="0909000004")
+    missing = client.post(
+        "/api/v1/sales",
+        json={
+            "customer_id": customer["id"],
+            "serial_number": "NO-SUCH-SERIAL",
+            "sale_date": date.today().isoformat(),
+            "warranty_months": 12,
+            "notes": None,
+        },
+    )
+    assert missing.status_code == 404, missing.text
+
+    piano = create_piano(client, status="reserved")
+    unavailable = client.post(
+        "/api/v1/sales",
+        json={
+            "customer_id": customer["id"],
+            "piano_id": piano["id"],
+            "sale_date": date.today().isoformat(),
+            "warranty_months": 12,
+            "notes": None,
+        },
+    )
+    assert unavailable.status_code == 422, unavailable.text
+
+    assert client.get("/api/v1/warranties").json() == []
+
+
+def test_sale_rolls_back_when_warranty_insert_fails(client, monkeypatch):
+    customer = create_customer(client, phone="0909000005")
+    piano = create_piano(client)
+
+    def fail_commit(self):
+        raise Exception("commit failed")
+
+    monkeypatch.setattr("app.services.sale_service.Session.commit", fail_commit)
+
+    response = client.post(
+        "/api/v1/sales",
+        json={
+            "customer_id": customer["id"],
+            "piano_id": piano["id"],
+            "sale_date": date.today().isoformat(),
+            "warranty_months": 12,
+            "notes": None,
+        },
+    )
+    assert response.status_code == 500 or response.status_code == 503
+
+    refreshed = client.get(f"/api/v1/pianos/{piano['id']}")
+    assert refreshed.json()["status"] == "available"
+
+
+def test_sale_decrements_non_serialized_stock(client):
+    customer = create_customer(client, phone="0909000002")
+    piano = create_piano(
+        client,
+        serial=None,
+        serial_number=None,
+        piano_type="digital",
+        quantity=2,
+        status="available",
+    )
+
+    response = client.post(
+        "/api/v1/sales",
+        json={
+            "customer_id": customer["id"],
+            "piano_id": piano["id"],
+            "sale_date": date.today().isoformat(),
+            "warranty_months": 12,
+            "notes": None,
+        },
+    )
+    assert response.status_code == 201, response.text
+
+    piano_response = client.get(f"/api/v1/pianos/{piano['id']}")
+    body = piano_response.json()
+    assert body["quantity"] == 1
+    assert body["status"] == "available"
+
+
+def test_sale_sale_end_date_uses_calendar_months(client):
+    customer = create_customer(client, phone="0909000007")
+    piano = create_piano(client, serial="END-DATE-001")
+
+    response = client.post(
+        "/api/v1/sales",
+        json={
+            "customer_id": customer["id"],
+            "piano_id": piano["id"],
+            "sale_date": "2026-01-31",
+            "warranty_months": 1,
+            "notes": None,
+        },
+    )
+    assert response.status_code == 201, response.text
+    assert response.json()["warranty_end_date"] == "2026-02-28"
+
+
 def test_dashboard_uses_operational_metrics(client):
     create_customer(client)
     create_piano(client)
@@ -193,6 +329,17 @@ def test_dashboard_uses_operational_metrics(client):
     body = response.json()
     assert body["kpis"]["available_pianos"] == 1
     assert body["kpis"]["total_customers"] == 1
+
+
+def test_dashboard_returns_503_on_database_disconnect(client, monkeypatch):
+    def fail(self):
+        raise OperationalError("SELECT 1", {}, Exception("server closed the connection unexpectedly"))
+
+    monkeypatch.setattr(DashboardService, "get", fail)
+
+    response = client.get("/api/v1/dashboard")
+    assert response.status_code == 503, response.text
+    assert response.json() == {"detail": "Cơ sở dữ liệu tạm thời không khả dụng"}
 
 
 def test_ai_endpoint_is_safe_when_llm_is_disabled(client):

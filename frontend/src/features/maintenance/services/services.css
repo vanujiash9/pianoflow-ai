@@ -1,0 +1,674 @@
+/* =========================================================
+   SERVICES
+   ========================================================= */
+
+.services-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.service-state {
+  min-height: 260px;
+  display: grid;
+  place-items: center;
+  gap: 4px;
+  color: #929baa;
+  font-size: 12px;
+}
+
+.service-state strong {
+  color: #2f3848;
+  font-size: 13px;
+}
+
+.service-state span {
+  color: #9098a6;
+  font-size: 12px;
+  text-align: center;
+}
+
+
+/* =========================================================
+   SUMMARY
+   ========================================================= */
+
+.service-summary {
+  min-height: 72px;
+
+  margin-bottom: 12px;
+  padding: 8px 10px;
+
+  display: flex;
+  align-items: center;
+
+  border: 1px solid var(--line);
+  border-radius: 14px;
+
+  background: #fff;
+}
+
+.service-summary-item {
+  min-width: 145px;
+  height: 54px;
+
+  padding: 0 12px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  border: 0;
+  border-radius: 10px;
+
+  background: transparent;
+
+  text-align: left;
+}
+
+.service-summary-item:hover {
+  background: #f8f9fb;
+}
+
+.service-summary-item.selected {
+  background: #f6f7fb;
+}
+
+.service-summary-icon {
+  width: 34px;
+  height: 34px;
+
+  flex: 0 0 auto;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 9px;
+
+  background: #eef1ff;
+  color: #5968dc;
+}
+
+.service-summary-icon.scheduled {
+  background: #fff5e8;
+  color: #c37c25;
+}
+
+.service-summary-icon.completed {
+  background: #edf8f2;
+  color: #36845c;
+}
+
+.service-summary-icon.cancelled {
+  background: #fdf0f1;
+  color: #b9545d;
+}
+
+.service-summary-item div {
+  display: flex;
+  flex-direction: column;
+}
+
+.service-summary-item strong {
+  color: #283347;
+
+  font-size: 17px;
+  line-height: 1;
+}
+
+.service-summary-item span:not(.service-summary-icon) {
+  margin-top: 4px;
+
+  color: #8993a4;
+
+  font-size: 10px;
+}
+
+.service-summary-divider {
+  width: 1px;
+  height: 32px;
+
+  margin: 0 4px;
+
+  background: #eaedf2;
+}
+
+
+/* =========================================================
+   PANEL
+   ========================================================= */
+
+.service-panel {
+  min-height: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   TOOLBAR
+   ========================================================= */
+
+.service-toolbar {
+  min-height: 58px;
+
+  padding: 10px 12px;
+
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  border-bottom: 1px solid var(--line);
+}
+
+.service-search {
+  width: 360px;
+  height: 37px;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 0 11px;
+
+  border: 1px solid #dde2e9;
+  border-radius: 9px;
+
+  background: #fff;
+  color: #8d96a6;
+}
+
+.service-search input {
+  min-width: 0;
+  flex: 1;
+
+  border: 0;
+  outline: 0;
+
+  background: transparent;
+  color: #384355;
+
+  font-size: 11.5px;
+}
+
+.service-search input::placeholder {
+  color: #9ba4b3;
+}
+
+.service-filter-select {
+  height: 37px;
+  min-width: 155px;
+
+  padding: 0 30px 0 10px;
+
+  border: 1px solid #dde2e9;
+  border-radius: 9px;
+
+  outline: 0;
+
+  background: #fff;
+  color: #596476;
+
+  font-size: 10.5px;
+}
+
+.service-result-count {
+  margin-left: auto;
+
+  color: #929baa;
+
+  font-size: 10px;
+}
+
+
+/* =========================================================
+   TABLE
+   ========================================================= */
+
+.service-table-scroll {
+  overflow: auto;
+}
+
+.service-table {
+  width: 100%;
+  min-width: 950px;
+
+  border-collapse: collapse;
+}
+
+.service-table th {
+  height: 40px;
+
+  padding: 0 14px;
+
+  text-align: left;
+
+  border-bottom: 1px solid #eceff3;
+
+  background: #fafbfc;
+  color: #8a94a5;
+
+  font-size: 10px;
+  font-weight: 600;
+
+  white-space: nowrap;
+}
+
+.service-table td {
+  height: 68px;
+
+  padding: 9px 14px;
+
+  border-bottom: 1px solid #eef1f4;
+
+  color: #5a6577;
+
+  font-size: 11px;
+
+  vertical-align: middle;
+}
+
+.service-table tbody tr:hover {
+  background: #fafbfc;
+}
+
+.service-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+
+/* CUSTOMER */
+
+.service-customer {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.service-avatar {
+  width: 33px;
+  height: 33px;
+
+  flex: 0 0 auto;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 50%;
+
+  background: #eef0ff;
+  color: #5967db;
+
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.service-customer strong,
+.service-customer span,
+.service-piano strong,
+.service-piano span,
+.service-work strong,
+.service-work span {
+  display: block;
+}
+
+.service-customer strong,
+.service-piano strong,
+.service-work strong {
+  color: #394457;
+
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.service-customer span,
+.service-piano span,
+.service-work span {
+  margin-top: 3px;
+
+  color: #9099a8;
+
+  font-size: 9.5px;
+}
+
+.service-piano span {
+  font-family:
+    ui-monospace,
+    SFMono-Regular,
+    Menlo,
+    monospace;
+}
+
+.service-work {
+  max-width: 260px;
+}
+
+.service-work span {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.service-date {
+  color: #596476;
+
+  font-size: 10.5px;
+}
+
+
+/* =========================================================
+   STATUS
+   ========================================================= */
+
+.service-status-select {
+  height: 30px;
+
+  padding: 0 26px 0 9px;
+
+  border: 0;
+  border-radius: 999px;
+
+  outline: 0;
+
+  font-size: 9.5px;
+  font-weight: 700;
+}
+
+.service-status-select.status-scheduled {
+  background: #fff3df;
+  color: #a86d20;
+}
+
+.service-status-select.status-completed {
+  background: #e9f7ef;
+  color: #347d57;
+}
+
+.service-status-select.status-cancelled {
+  background: #fdeced;
+  color: #a44e56;
+}
+
+.service-status-select.status-in_progress {
+  background: #edf1ff;
+  color: #5364c6;
+}
+
+
+/* =========================================================
+   STATES
+   ========================================================= */
+
+.service-state {
+  min-height: 260px;
+
+  display: grid;
+  place-items: center;
+
+  color: #929baa;
+
+  font-size: 11.5px;
+}
+
+
+/* =========================================================
+   MODAL FORM
+   ========================================================= */
+
+.service-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.service-form-grid {
+  padding: 16px 18px;
+
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+
+  gap: 13px;
+}
+
+.service-form-grid label {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 6px;
+}
+
+.service-form-grid label > span {
+  color: #626d7f;
+
+  font-size: 10.5px;
+  font-weight: 700;
+}
+
+.service-form-grid input,
+.service-form-grid select,
+.service-form-grid textarea {
+  width: 100%;
+
+  border: 1px solid #dde2e9;
+  border-radius: 8px;
+
+  outline: 0;
+
+  background: #fff;
+  color: #374255;
+
+  font-size: 11px;
+}
+
+.service-form-grid input,
+.service-form-grid select {
+  height: 38px;
+
+  padding: 0 10px;
+}
+
+.service-form-grid textarea {
+  padding: 9px 10px;
+
+  resize: vertical;
+}
+
+.service-form-grid input:focus,
+.service-form-grid select:focus,
+.service-form-grid textarea:focus {
+  border-color: #adb6ee;
+
+  box-shadow:
+    0 0 0 3px rgb(88 104 242 / 7%);
+}
+
+.service-form-grid .span-2 {
+  grid-column: 1 / -1;
+}
+
+.service-form-actions {
+  padding: 12px 18px 16px;
+
+  display: flex;
+  justify-content: flex-end;
+
+  gap: 8px;
+
+  border-top: 1px solid #edf0f4;
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+.service-mobile-list {
+  display: none;
+}
+
+@media (max-width: 820px) {
+  .service-summary {
+    overflow-x: auto;
+  }
+
+  .service-summary-item {
+    min-width: 118px;
+  }
+
+  .service-summary-divider {
+    display: none;
+  }
+
+  .service-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .service-search {
+    width: 100%;
+  }
+
+  .service-filter-select {
+    width: 100%;
+  }
+
+  .service-result-count {
+    display: none;
+  }
+
+  .service-table-scroll {
+    display: none;
+  }
+
+  .service-mobile-list {
+    padding: 10px;
+
+    display: flex;
+    flex-direction: column;
+
+    gap: 8px;
+  }
+
+  .service-mobile-card {
+    padding: 12px;
+
+    border: 1px solid #e5e9ef;
+    border-radius: 11px;
+
+    background: #fff;
+  }
+
+  .service-mobile-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 10px;
+  }
+
+  .service-mobile-status {
+    padding: 5px 8px;
+
+    border-radius: 999px;
+
+    font-size: 9px;
+    font-weight: 700;
+  }
+
+  .service-mobile-status.status-scheduled {
+    background: #fff3df;
+    color: #a86d20;
+  }
+
+  .service-mobile-status.status-completed {
+    background: #e9f7ef;
+    color: #347d57;
+  }
+
+  .service-mobile-status.status-cancelled {
+    background: #fdeced;
+    color: #a44e56;
+  }
+
+  .service-mobile-piano {
+    margin: 11px 0;
+    padding: 9px 10px;
+
+    border-radius: 8px;
+
+    background: #f7f8fa;
+  }
+
+  .service-mobile-piano strong,
+  .service-mobile-piano span {
+    display: block;
+  }
+
+  .service-mobile-piano strong {
+    color: #414c5e;
+
+    font-size: 11px;
+  }
+
+  .service-mobile-piano span {
+    margin-top: 3px;
+
+    color: #8e97a7;
+
+    font-size: 9px;
+  }
+
+  .service-mobile-meta {
+    display: grid;
+    grid-template-columns:
+      repeat(3, 1fr);
+
+    gap: 7px;
+  }
+
+  .service-mobile-meta div {
+    padding: 8px;
+
+    border-radius: 8px;
+
+    background: #fafbfc;
+  }
+
+  .service-mobile-meta span,
+  .service-mobile-meta strong {
+    display: block;
+  }
+
+  .service-mobile-meta span {
+    color: #989fac;
+
+    font-size: 8px;
+  }
+
+  .service-mobile-meta strong {
+    margin-top: 3px;
+
+    color: #596476;
+
+    font-size: 9px;
+  }
+
+  .service-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .service-form-grid .span-2 {
+    grid-column: auto;
+  }
+}
+
+@media (max-width: 560px) {
+  .service-mobile-meta {
+    grid-template-columns: 1fr 1fr;
+  }
+}

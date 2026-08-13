@@ -1,0 +1,1 @@
+export { WarrantiesPage } from './WarrantiesPage'

@@ -9,7 +9,8 @@ from app.ai.agent import ShopAgent
 from app.core.config import get_settings
 from app.models.enums import MessageRole
 from app.repositories.ai_repository import AIConversationRepository
-from app.schemas.ai import AIChatRequest, AIChatResponse
+from app.models.ai_conversation import AIConversation
+from app.schemas.ai import AIChatRequest, AIChatResponse, AIConversationRead, AIMessageRead
 
 logger = logging.getLogger(__name__)
 
@@ -19,6 +20,18 @@ class AIService:
         self.db = db
         self.settings = get_settings()
         self.conversations = AIConversationRepository(db)
+
+    def get_conversation(self, conversation_id: uuid.UUID) -> AIConversationRead:
+        conversation = self.db.get(AIConversation, conversation_id)
+        if conversation is None:
+            raise KeyError(str(conversation_id))
+
+        messages = self.conversations.history(conversation_id, limit=self.settings.ai_history_limit)
+        return AIConversationRead(
+            conversation_id=conversation.id,
+            title=conversation.title,
+            messages=[AIMessageRead(role=item.role.value, content=item.content) for item in messages],
+        )
 
     def chat(self, payload: AIChatRequest) -> AIChatResponse:
         started_at = time.perf_counter()

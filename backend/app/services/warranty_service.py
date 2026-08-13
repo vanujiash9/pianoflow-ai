@@ -35,6 +35,7 @@ class WarrantyService:
             customer_id=item.sale.customer_id,
             customer_name=item.sale.customer.name,
             customer_phone=item.sale.customer.phone,
+            customer_address=item.sale.customer.address,
             piano_id=item.sale.piano_id,
             piano_name=f"{item.sale.piano.brand} {item.sale.piano.model}",
             serial_number=item.sale.piano.serial_number,

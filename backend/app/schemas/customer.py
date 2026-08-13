@@ -22,6 +22,20 @@ class CustomerCreate(StrictModel):
         return value
 
 
+class CustomerInput(StrictModel):
+    name: str = Field(min_length=2, max_length=120)
+    phone: str = Field(min_length=8, max_length=30)
+    address: str | None = Field(default=None, max_length=255)
+    notes: str | None = None
+
+    @field_validator("phone", mode="before")
+    @classmethod
+    def normalize_phone(cls, value: object) -> object:
+        if value is None or isinstance(value, str):
+            return normalize_phone_number(value)
+        return value
+
+
 class CustomerUpdate(StrictModel):
     name: str | None = Field(default=None, min_length=2, max_length=120)
     phone: str | None = Field(default=None, min_length=8, max_length=30)

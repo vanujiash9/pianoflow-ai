@@ -4,14 +4,18 @@ import calendar
 import uuid
 from datetime import date
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.exceptions import BusinessRuleError, NotFoundError
+from app.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
+from app.models.customer import Customer
 from app.models.enums import PianoStatus
+from app.models.piano import Piano
 from app.models.warranty import Warranty
 from app.repositories.customer_repository import CustomerRepository
 from app.repositories.piano_repository import PianoRepository
 from app.repositories.sale_repository import SaleRepository
+from app.schemas.customer import CustomerInput
 from app.schemas.sale import SaleCreate, SaleDetail
 
 
@@ -34,14 +38,76 @@ class SaleService:
         return [self._to_detail(item) for item in self.sales.list()]
 
     def create(self, data: SaleCreate) -> SaleDetail:
-        customer = self.customers.get(data.customer_id)
+        customer = self._resolve_customer(data.customer_id, data.customer)
+        piano = self._resolve_piano(data.piano_id, data.serial_number)
+        self._apply_inventory_sale_rules(piano)
+        sale = self.sales.create(
+            customer_id=customer.id,
+            piano_id=piano.id,
+            sale_date=data.sale_date,
+            notes=data.notes,
+        )
+        warranty = Warranty(
+            sale_id=sale.id,
+            start_date=data.sale_date,
+            end_date=_add_months(data.sale_date, data.warranty_months),
+            notes=data.notes,
+        )
+        self.db.add(warranty)
+        try:
+            self.db.commit()
+        except Exception:
+            self.db.rollback()
+            raise
+        return self._to_detail(self.sales.get(sale.id))
+
+    def _resolve_customer(self, customer_id: uuid.UUID | None, customer: CustomerInput | None) -> Customer:
+        if customer_id:
+            entity = self.customers.get(customer_id)
+            if not entity:
+                raise NotFoundError("Không tìm thấy khách hàng")
+            return entity
         if not customer:
-            raise NotFoundError("Không tìm thấy khách hàng")
-        piano = self.pianos.get(data.piano_id)
-        if not piano:
+            raise BusinessRuleError("Phải cung cấp khách hàng hoặc customer_id")
+        entity = self.customers.get_by_phone(customer.phone)
+        if entity:
+            if customer.name and customer.name != entity.name:
+                entity.name = customer.name
+            if customer.address and customer.address != entity.address:
+                entity.address = customer.address
+            if customer.notes and customer.notes != entity.notes:
+                entity.notes = customer.notes
+            self.db.flush()
+            return entity
+        entity = Customer(name=customer.name, phone=customer.phone, address=customer.address, notes=customer.notes)
+        self.db.add(entity)
+        self.db.flush()
+        return entity
+
+    def _resolve_piano(self, piano_id: uuid.UUID | None, serial_number: str | None) -> Piano:
+        if piano_id:
+            entity = self.db.scalar(
+                select(Piano).where(Piano.id == piano_id).with_for_update()
+            )
+            if not entity:
+                raise NotFoundError("Không tìm thấy đàn")
+            return entity
+        if not serial_number:
+            raise BusinessRuleError("Phải cung cấp piano_id hoặc serial_number")
+        matches = list(
+            self.db.scalars(
+                select(Piano).where(Piano.serial_number == serial_number).with_for_update()
+            ).all()
+        )
+        if len(matches) > 1:
+            raise ConflictError("Serial đàn không xác định duy nhất")
+        if not matches:
             raise NotFoundError("Không tìm thấy đàn")
-        if piano.status == PianoStatus.SOLD:
-            raise BusinessRuleError("Đàn này đã được bán")
+        return matches[0]
+
+    def _apply_inventory_sale_rules(self, piano: Piano) -> None:
+        if piano.status != PianoStatus.AVAILABLE:
+            raise BusinessRuleError("Đàn này không sẵn sàng để bán")
         if piano.serial_number is None:
             if piano.quantity <= 0:
                 raise BusinessRuleError("Đàn này đã hết hàng")
@@ -51,21 +117,6 @@ class SaleService:
         else:
             piano.status = PianoStatus.SOLD
 
-        sale = self.sales.create(
-            customer_id=data.customer_id,
-            piano_id=data.piano_id,
-            sale_date=data.sale_date,
-            notes=data.notes,
-        )
-        warranty = Warranty(
-            sale_id=sale.id,
-            start_date=data.sale_date,
-            end_date=_add_months(data.sale_date, data.warranty_months),
-        )
-        self.db.add(warranty)
-        self.db.commit()
-        return self._to_detail(self.sales.get(sale.id))
-
     @staticmethod
     def _to_detail(sale) -> SaleDetail:
         return SaleDetail(
@@ -73,10 +124,13 @@ class SaleService:
             customer_id=sale.customer_id,
             customer_name=sale.customer.name,
             customer_phone=sale.customer.phone,
+            customer_address=sale.customer.address,
             piano_id=sale.piano_id,
             piano_name=f"{sale.piano.brand} {sale.piano.model}",
             serial_number=sale.piano.serial_number,
             sale_date=sale.sale_date,
+            warranty_id=sale.warranty.id if sale.warranty else None,
+            warranty_start_date=sale.warranty.start_date if sale.warranty else None,
             warranty_end_date=sale.warranty.end_date if sale.warranty else None,
             notes=sale.notes,
         )

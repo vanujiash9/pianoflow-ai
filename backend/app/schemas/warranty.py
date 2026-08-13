@@ -12,11 +12,14 @@ class WarrantyDetail(StrictModel):
     customer_id: uuid.UUID
     customer_name: str
     customer_phone: str
+    customer_address: str | None
     piano_id: uuid.UUID
     piano_name: str
-    serial_number: str
+    serial_number: str | None
     start_date: date
     end_date: date
     status: str
     days_remaining: int
     notes: str | None
+    sale_date: date | None = None
+    warranty_id: uuid.UUID | None = None

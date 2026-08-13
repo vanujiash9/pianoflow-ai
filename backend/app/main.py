@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
 import app.models  # noqa: F401
 from app.api.router import api_router
@@ -54,6 +55,19 @@ def handle_conflict(_: Request, exc: ConflictError) -> JSONResponse:
 @app.exception_handler(BusinessRuleError)
 def handle_business_rule(_: Request, exc: BusinessRuleError) -> JSONResponse:
     return JSONResponse(status_code=status.HTTP_422_UNPROCESSABLE_ENTITY, content={"detail": str(exc)})
+
+
+@app.exception_handler(SQLAlchemyError)
+def handle_database_error(_: Request, exc: SQLAlchemyError) -> JSONResponse:
+    if isinstance(exc, DBAPIError) and exc.connection_invalidated:
+        return JSONResponse(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            content={"detail": "Cơ sở dữ liệu tạm thời không khả dụng"},
+        )
+    return JSONResponse(
+        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+        content={"detail": "Cơ sở dữ liệu tạm thời không khả dụng"},
+    )
 
 
 app.include_router(api_router, prefix=settings.api_v1_prefix)

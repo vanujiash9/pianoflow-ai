@@ -46,6 +46,7 @@ export interface Warranty {
   customer_id: string
   customer_name: string
   customer_phone: string
+  customer_address: string | null
   piano_id: string
   piano_name: string
   serial_number: string

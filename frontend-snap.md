@@ -1,0 +1,72 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e3]:
+    - complementary [ref=e4]:
+      - generic [ref=e9]:
+        - strong [ref=e10]: PianoFlow
+        - generic [ref=e11]: Shop workspace
+      - navigation [ref=e12]:
+        - link "Tổng quan" [ref=e13] [cursor=pointer]:
+          - /url: /
+        - link "Khách hàng" [ref=e18] [cursor=pointer]:
+          - /url: /customers
+        - link "Đàn" [ref=e25] [cursor=pointer]:
+          - /url: /pianos
+        - link "Bán hàng" [ref=e29] [cursor=pointer]:
+          - /url: /sales
+        - link "Bảo hành" [ref=e34] [cursor=pointer]:
+          - /url: /warranties
+        - link "Bảo trì" [ref=e39] [cursor=pointer]:
+          - /url: /services
+        - link "Khách quan tâm" [ref=e43] [cursor=pointer]:
+          - /url: /leads
+        - link "Trợ lý AI" [ref=e48] [cursor=pointer]:
+          - /url: /assistant
+      - generic [ref=e65]:
+        - strong [ref=e66]: Dữ liệu nhỏ, dễ kiểm soát
+        - generic [ref=e67]: Ưu tiên thao tác nhanh tại shop.
+    - main [ref=e68]:
+      - generic [ref=e69]:
+        - button [ref=e70] [cursor=pointer]
+        - textbox "Tìm khách, SĐT, model hoặc serial..." [ref=e76]
+        - generic [ref=e77]:
+          - button "Thông báo" [ref=e78] [cursor=pointer]
+          - generic [ref=e82]: C
+      - generic [ref=e83]:
+        - generic [ref=e84]:
+          - generic [ref=e85]:
+            - generic [ref=e86]: Quản lý cửa hàng
+            - heading "Tổng quan hôm nay" [level=1] [ref=e87]
+            - paragraph [ref=e88]: Nhìn nhanh tình trạng cửa hàng và những việc cần xử lý.
+          - button "+ Ghi nhận bán đàn" [ref=e90] [cursor=pointer]
+        - generic [ref=e92]:
+          - generic [ref=e105]:
+            - generic [ref=e106]: Đàn đang có
+            - strong [ref=e107]: "0"
+            - text: Sẵn sàng tư vấn
+          - generic [ref=e113]:
+            - generic [ref=e114]: Đã bán tháng này
+            - strong [ref=e115]: "1"
+            - text: Số cây đàn
+          - generic [ref=e123]:
+            - generic [ref=e124]: Khách hàng
+            - strong [ref=e125]: "1"
+            - text: Đã lưu thông tin
+          - generic [ref=e130]:
+            - generic [ref=e131]: Cần chú ý
+            - strong [ref=e132]: "0"
+            - text: BH · bảo trì · follow-up
+        - generic [ref=e133]:
+          - generic [ref=e134]:
+            - generic [ref=e135]
+            - application [ref=e143]
+          - generic [ref=e178]:
+            - generic [ref=e180]
+            - generic [ref=e188]
+        - generic [ref=e195]:
+          - generic [ref=e196]:
+            - generic [ref=e197]
+            - button "Xem tất cả" [ref=e200] [cursor=pointer]
+          - table [ref=e202]:
+            - rowgroup [ref=e203]
+            - rowgroup [ref=e210]
+  - generic [ref=e218]: "0"
