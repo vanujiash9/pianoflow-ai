@@ -360,7 +360,6 @@ export function CustomersPage() {
           </div>
         ) : filteredRows.length === 0 ? (
           <div className="customers-loading">
-            <strong>Chưa có khách phù hợp</strong>
             <span>Thử thay đổi từ khóa hoặc bộ lọc.</span>
           </div>
         ) : (
@@ -746,11 +745,10 @@ export function CustomersPage() {
                 </span>
               </div>
 
-              {profile.services.length ===
-              0 ? (
-                <div className="profile-empty">
+              {profile.services.length === 0 ? (
+                <p className="profile-empty">
                   Chưa có lịch sử bảo trì.
-                </div>
+                </p>
               ) : (
                 <div className="profile-list">
                   {profile.services.map(

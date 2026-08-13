@@ -59,9 +59,7 @@ export function Layout() {
             </NavLink>
           ))}
         </nav>
-        <div className="sidebar-bottom">
-          <div className="mini-card"><Boxes size={17} /><div><strong>Dữ liệu nhỏ, dễ kiểm soát</strong><span>Ưu tiên thao tác nhanh tại shop.</span></div></div>
-        </div>
+     
       </aside>
 
       <main className="main-area">

@@ -37,6 +37,13 @@ class AIService:
         started_at = time.perf_counter()
         conversation = self.conversations.get_or_create(payload.conversation_id, payload.message)
         self.conversations.add_message(conversation.id, MessageRole.USER, payload.message)
+        history = self.conversations.history(conversation.id, limit=self.settings.ai_history_limit)
+        logger.info(
+            "ai_chat load_history conversation_id=%s history_count=%s history_limit=%s",
+            conversation.id,
+            len(history),
+            self.settings.ai_history_limit,
+        )
 
         if not self.settings.llm_enabled or not self.settings.llm_model or not self.settings.llm_api_key:
             answer = (
@@ -60,7 +67,6 @@ class AIService:
                 mode="disabled",
             )
 
-        history = self.conversations.history(conversation.id, limit=self.settings.ai_history_limit)
         logger.info(
             "ai_chat start conversation_id=%s model=%s history_count=%s history_limit=%s",
             conversation.id,
