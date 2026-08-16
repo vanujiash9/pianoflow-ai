@@ -15,4 +15,6 @@ class AIConversation(TimestampMixin, Base):
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     title: Mapped[str | None] = mapped_column(String(160))
 
-    messages = relationship("AIMessage", back_populates="conversation", cascade="all, delete-orphan")
+    messages = relationship(
+        "AIMessage", back_populates="conversation", cascade="all, delete-orphan"
+    )

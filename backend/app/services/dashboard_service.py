@@ -119,7 +119,7 @@ class DashboardService:
             items.append(
                 AttentionItem(
                     type="lead",
-                    title=f"{lead.customer_name} · {lead.interested_brand or 'Chưa rõ hãng'}",
+                    title=f"{lead.customer.name} · {lead.interested_brand or 'Chưa rõ hãng'}",
                     subtitle="Cần chăm sóc khách đang quan tâm",
                     due_date=lead.follow_up_date,
                     priority="low",

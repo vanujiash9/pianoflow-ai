@@ -4,7 +4,7 @@ import uuid
 from datetime import date
 from decimal import Decimal
 
-from sqlalchemy import Date, Enum, Integer, Numeric, String, Text
+from sqlalchemy import CheckConstraint, Date, Enum, Integer, Numeric, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -14,6 +14,11 @@ from app.models.enums import PianoCondition, PianoStatus, PianoType
 
 class Piano(TimestampMixin, Base):
     __tablename__ = "pianos"
+    __table_args__ = (
+        CheckConstraint("quantity >= 0", name="ck_pianos_quantity_nonnegative"),
+        CheckConstraint("purchase_price IS NULL OR purchase_price >= 0", name="ck_pianos_purchase_price_nonnegative"),
+        CheckConstraint("retail_price IS NULL OR retail_price >= 0", name="ck_pianos_retail_price_nonnegative"),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     brand: Mapped[str] = mapped_column(String(80), nullable=False, index=True)

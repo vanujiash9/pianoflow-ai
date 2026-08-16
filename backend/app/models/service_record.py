@@ -3,7 +3,7 @@ from __future__ import annotations
 import uuid
 from datetime import date
 
-from sqlalchemy import Date, Enum, ForeignKey, String, Text
+from sqlalchemy import CheckConstraint, Date, Enum, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -13,10 +13,20 @@ from app.models.enums import ServiceStatus
 
 class ServiceRecord(TimestampMixin, Base):
     __tablename__ = "service_records"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')",
+            name="ck_service_records_status_valid",
+        ),
+    )
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    customer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customers.id"), nullable=False, index=True)
-    piano_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("pianos.id"), nullable=False, index=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("customers.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    piano_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("pianos.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
     service_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     service_type: Mapped[str] = mapped_column(String(100), nullable=False)
     description: Mapped[str | None] = mapped_column(Text)

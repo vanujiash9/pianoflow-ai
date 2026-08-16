@@ -18,5 +18,6 @@ class Customer(TimestampMixin, Base):
     address: Mapped[str | None] = mapped_column(String(255))
     notes: Mapped[str | None] = mapped_column(Text)
 
+    leads = relationship("Lead", back_populates="customer")
     sales = relationship("Sale", back_populates="customer")
     services = relationship("ServiceRecord", back_populates="customer")

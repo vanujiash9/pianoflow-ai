@@ -14,9 +14,11 @@ class Sale(TimestampMixin, Base):
     __tablename__ = "sales"
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
-    customer_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("customers.id"), nullable=False, index=True)
+    customer_id: Mapped[uuid.UUID] = mapped_column(
+        ForeignKey("customers.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
     piano_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("pianos.id"), nullable=False, unique=True, index=True
+        ForeignKey("pianos.id", ondelete="RESTRICT"), nullable=False, unique=True, index=True
     )
     sale_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
     notes: Mapped[str | None] = mapped_column(Text)

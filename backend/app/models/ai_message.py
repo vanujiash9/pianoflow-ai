@@ -15,7 +15,7 @@ class AIMessage(TimestampMixin, Base):
 
     id: Mapped[uuid.UUID] = mapped_column(primary_key=True, default=uuid.uuid4)
     conversation_id: Mapped[uuid.UUID] = mapped_column(
-        ForeignKey("ai_conversations.id"), nullable=False, index=True
+        ForeignKey("ai_conversations.id", ondelete="CASCADE"), nullable=False, index=True
     )
     role: Mapped[MessageRole] = mapped_column(Enum(MessageRole, native_enum=False), nullable=False)
     content: Mapped[str] = mapped_column(Text, nullable=False)
