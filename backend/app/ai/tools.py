@@ -208,7 +208,7 @@ class ShopAITools:
             ],
             "followups": [
                 {
-                    "customer": item.customer_name,
+                    "customer": item.customer.name,
                     "interest": " ".join(filter(None, [item.interested_brand, item.interested_model])),
                     "due_date": item.follow_up_date.isoformat() if item.follow_up_date else None,
                 }

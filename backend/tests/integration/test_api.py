@@ -1,12 +1,13 @@
 from __future__ import annotations
 
+from datetime import date
+
 from sqlalchemy.exc import OperationalError
 
 import pytest
 
+from app.core.config import get_settings
 from app.services.dashboard_service import DashboardService
-
-from datetime import date
 
 
 def create_customer(client, phone="0909000001"):
@@ -344,7 +345,12 @@ def test_dashboard_returns_503_on_database_disconnect(client, monkeypatch):
     assert response.json() == {"detail": "Cơ sở dữ liệu tạm thời không khả dụng"}
 
 
-def test_ai_endpoint_is_safe_when_llm_is_disabled(client):
+def test_ai_endpoint_respects_llm_flag(client, monkeypatch):
+    settings = get_settings()
+    monkeypatch.setattr(settings, "llm_enabled", False)
+    monkeypatch.setattr(settings, "llm_model", "")
+    monkeypatch.setattr(settings, "llm_api_key", "")
+
     response = client.post(
         "/api/v1/ai/chat",
         json={"message": "Khách nào cần chú ý?", "conversation_id": None},

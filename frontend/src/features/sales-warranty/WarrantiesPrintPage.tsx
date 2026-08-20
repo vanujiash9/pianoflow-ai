@@ -75,7 +75,7 @@ export function WarrantiesPrintPage() {
       <PageHeader
         title="Phiếu bảo hành"
         subtitle="Chọn giao dịch rồi lưu trước khi in."
-        actions={<button type="button" className="primary-button print-hide" onClick={submitAndPrint} disabled={saving || !selectedSale}><Printer size={16} />{saving ? 'Đang lưu...' : 'Lưu & in phiếu'}</button>}
+        actions={<button type="button" className="primary-button print-hide" onClick={submitAndPrint} disabled={saving || !selectedSale}><Printer size={16} />{saving ? 'Đang lưu...' : 'Lưu & Tải về'}</button>}
       />
 
       <div className="warranty-create-layout">
