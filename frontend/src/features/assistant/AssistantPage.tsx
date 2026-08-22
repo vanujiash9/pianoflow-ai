@@ -42,7 +42,7 @@ export function AssistantPage() {
     <div className="assistant-page">
       <PageHeader
         title="Trợ lý AI"
-        subtitle={conversationId ? 'Đang lưu hội thoại' : ''}
+        subtitle={conversationId ? '' : ''}
         actions={
           <button
             type="button"

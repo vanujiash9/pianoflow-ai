@@ -54,19 +54,7 @@ a {
    APP SHELL
    ========================================= */
 
-
-html,
-body,
-#root {
-  height: 100%;
-}
-
-body {
-  overflow: hidden;
-}
-
 .app-shell {
-  height: 100dvh;
   height: 100dvh;
 
   display: flex;
@@ -340,7 +328,11 @@ body {
 
   gap: 10px;
 
+  border: 0;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+  background: transparent;
+  width: 100%;
+  text-align: left;
 }
 
 .sidebar-user-avatar {
@@ -359,6 +351,32 @@ body {
 
   font-size: 11px;
   font-weight: 800;
+}
+
+.sidebar-user-action {
+  margin-top: 8px;
+  border: 0;
+  background: #fff;
+  color: #d14343;
+  width: 100%;
+  min-height: 40px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  box-shadow: 0 8px 20px rgba(16, 24, 40, 0.16);
+}
+
+.sidebar-user-action .logout-icon {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+  color: currentColor;
+}
+
+.sidebar-user-action span {
+  line-height: 1;
 }
 
 .sidebar-user-info {
@@ -856,8 +874,72 @@ body {
     margin-left: 0;
   }
 
+  .topbar {
+    padding: 0 10px;
+    gap: 8px;
+  }
+
+  .mobile-menu {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    flex: 0 0 auto;
+    border-radius: 10px;
+    border: 1px solid var(--line);
+    background: #fff;
+  }
+
+  .global-search {
+    min-width: 0;
+    height: 36px;
+    padding: 0 10px;
+  }
+
+  .global-search input {
+    font-size: 12px;
+  }
+
+  .topbar-actions {
+    gap: 6px;
+  }
+
+  .topbar-actions .icon-button,
+  .avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+  }
+
+  .topbar-actions .icon-button {
+    flex: 0 0 34px;
+  }
+
+  .role-switch {
+    display: none;
+  }
+
   .sidebar-collapse-button {
     display: none;
+  }
+
+  .page-container {
+    padding: 14px 12px 18px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .page-container::-webkit-scrollbar {
+    display: none;
+  }
+
+  .page-container {
+    scrollbar-width: none;
+  }
+
+  .page-header {
+    margin-bottom: 12px;
   }
 
   /*

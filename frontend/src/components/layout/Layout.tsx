@@ -6,35 +6,36 @@ import {
   ClipboardList,
   Gauge,
   Menu,
-  Piano,
   Search,
   ShieldCheck,
   ShoppingBag,
   Users,
-  Wrench,
+  Settings2,
 } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
 
+import { useAuth } from '../../contexts/AuthContext'
 import { useRole } from '../../contexts/RoleContext'
 
 const nav = [
   { to: '/', label: 'Tổng quan', icon: Gauge },
   { to: '/customers', label: 'Khách hàng', icon: Users },
-  { to: '/pianos', label: 'Đàn', icon: Piano },
   { to: '/sales', label: 'Bán hàng', icon: ShoppingBag },
   { to: '/warranties', label: 'Bảo hành', icon: ShieldCheck },
-  { to: '/services', label: 'Bảo trì', icon: Wrench },
   { to: '/leads', label: 'Khách tiềm năng', icon: ClipboardList },
   { to: '/assistant', label: 'Trợ lý AI', icon: Bot },
+  { to: '/settings/users', label: 'Người dùng', icon: Settings2 },
 ]
 
 export function Layout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const [collapsed, setCollapsed] = useState(false)
   const [query, setQuery] = useState('')
+  const [userMenuOpen, setUserMenuOpen] = useState(false)
 
   const { label } = useRole()
+  const { logout, user } = useAuth()
   const navigate = useNavigate()
 
   const submitSearch = (event: React.FormEvent) => {
@@ -104,17 +105,80 @@ export function Layout() {
           ))}
         </nav>
 
-        <div className="sidebar-user">
-          <div className="sidebar-user-avatar">
-            {label.charAt(0).toUpperCase()}
-          </div>
+        <div className="sidebar-user-menu">
+          <button
+            type="button"
+            className="sidebar-user"
+            onClick={() => setUserMenuOpen((value) => !value)}
+            aria-expanded={userMenuOpen}
+          >
+            <div className="sidebar-user-avatar">
+              <span>{label.charAt(0).toUpperCase()}</span>
+            </div>
 
-          <div className="sidebar-user-info">
-            <strong>{label}</strong>
-            <span>Chủ shop</span>
-          </div>
+            <div className="sidebar-user-info">
+              <strong>{label}</strong>
+              <span>Chủ shop</span>
+            </div>
 
-          <ChevronRight size={16} className="sidebar-user-arrow" />
+            <ChevronRight size={16} className="sidebar-user-arrow" />
+          </button>
+
+          {userMenuOpen ? (
+            <button
+              type="button"
+              className="sidebar-user-action"
+              aria-label="Đăng xuất"
+              onClick={() => void logout()}
+            >
+              <svg viewBox="0 0 24 24" aria-hidden="true" className="logout-icon">
+                <path
+                  d="M10 17l5-5-5-5v3H3v4h7v3zm4-13H6a2 2 0 00-2 2v3h2V6h8v12H6v-3H4v3a2 2 0 002 2h8a2 2 0 002-2V6a2 2 0 00-2-2z"
+                  fill="currentColor"
+                />
+              </svg>
+              <span>Đăng xuất</span>
+            </button>
+          ) : null}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
         </div>
       </aside>
 
@@ -150,11 +214,12 @@ export function Layout() {
 
             <div className="role-switch">
               <button type="button" className="selected">
-                Chủ shop
+                {user?.role || 'Chủ shop'}
               </button>
             </div>
 
             <div className="avatar">{label.charAt(0).toUpperCase()}</div>
+
           </div>
         </header>
 

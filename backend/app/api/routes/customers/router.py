@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Response, status
 
 from app.api.deps import get_customer_service
 from app.schemas.customer import CustomerCreate, CustomerProfile, CustomerRead, CustomerUpdate
@@ -50,3 +50,16 @@ def update_customer(
     service: CustomerService = Depends(get_customer_service),
 ) -> CustomerRead:
     return service.update(customer_id, payload)
+
+
+@router.delete(
+    "/{customer_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    response_model=None,
+)
+def delete_customer(
+    customer_id: uuid.UUID,
+    service: CustomerService = Depends(get_customer_service),
+) -> None:
+    service.delete(customer_id)

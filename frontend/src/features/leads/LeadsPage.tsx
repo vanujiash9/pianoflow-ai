@@ -7,6 +7,7 @@ import {
   Search,
   ShieldCheck,
   ShoppingBag,
+  Trash2,
   UserRound,
   Users,
   X,
@@ -244,6 +245,17 @@ export function LeadsPage() {
     }
   }
 
+  const deleteLead = async (leadId: string, customerName: string) => {
+    if (!window.confirm(`Xóa khách quan tâm ${customerName}?`)) return
+    try {
+      setError('')
+      await api(`/leads/${leadId}`, { method: 'DELETE' })
+      await load(true)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Không thể xóa khách quan tâm.')
+    }
+  }
+
   const brands = useMemo(
     () => Array.from(new Set(items.map((item) => item.interested_brand?.trim()).filter((value): value is string => Boolean(value)))).sort(),
     [items],
@@ -264,7 +276,7 @@ export function LeadsPage() {
 
   return (
     <div className="leads-page">
-      <PageHeader title="Khách đang quan tâm" subtitle="" actions={<button type="button" className="primary-button leads-add-button" onClick={openDrawer}><Plus size={17} />Thêm khách quan tâm</button>} />
+      <PageHeader title="Khách đang quan tâm" subtitle="Theo dõi người chưa mua và cơ hội trước khi chốt" actions={<button type="button" className="primary-button leads-add-button" onClick={openDrawer}><Plus size={17} />Thêm khách quan tâm</button>} />
 
       {error && <div className="error-banner">{error}</div>}
 
@@ -291,16 +303,17 @@ export function LeadsPage() {
         {loading && items.length === 0 ? <div className="leads-empty-state">Đang tải dữ liệu...</div> : filteredItems.length === 0 ? <div className="leads-empty-state"><UserRound size={22} /><strong>Chưa có khách phù hợp</strong><span>Thử thay đổi tìm kiếm hoặc bộ lọc.</span></div> : <>
           <div className="leads-table-scroll">
             <table className="leads-table">
-              <thead><tr><th>Khách hàng</th><th>SĐT</th><th>Quan tâm</th><th>Ngân sách</th><th>Trạng thái</th><th>Gọi lại</th><th>Ghi chú</th></tr></thead>
+              <thead><tr><th>Khách hàng</th><th>SĐT</th><th>Quan tâm</th><th>Ngân sách</th><th>Trạng thái</th><th>Gọi lại</th><th>Ghi chú</th><th /></tr></thead>
               <tbody>
                 {filteredItems.map((item) => <tr key={item.id}>
                   <td><div className="lead-customer"><div className="lead-avatar">{getInitials(item.customer.name)}</div><strong>{item.customer.name}</strong></div></td>
                   <td className="lead-phone">{item.customer.phone}</td>
                   <td><div className="lead-interest"><strong>{item.interested_brand || 'Chưa rõ hãng'}</strong>{item.interested_model && <span>{item.interested_model}</span>}</div></td>
                   <td><span className="lead-budget">{formatBudget(item.budget_min, item.budget_max)}</span></td>
-                  <td><select className={`lead-status-select status-${item.status}`} value={item.status} onChange={(event) => void updateStatus(item.id, event.target.value as LeadStatus)}><option value="new">Mới</option><option value="contacted">Đã liên hệ</option><option value="visited">Đã ghé shop</option><option value="considering">Đang cân nhắc</option><option value="won">Đã chuyển đổi</option><option value="lost">Đã mất</option></select></td>
+                  <td><select className={`lead-status-select status-${item.status}`} value={item.status} onChange={(event) => void updateStatus(item.id, event.target.value as LeadStatus)}><option value="new">Mới</option><option value="contacted">Đã liên hệ</option><option value="visited">Đã ghé shop</option><option value="considering">Đang cân nhắc</option><option value="won">Đã chuyển đổi</option></select></td>
                   <td><span className={isFollowUpSoon(item.follow_up_date) ? 'lead-followup due' : 'lead-followup'}>{item.follow_up_date ? fmtDate(item.follow_up_date) : '—'}</span></td>
                   <td><span className="lead-note">{item.notes || '—'}</span></td>
+                  <td><button type="button" className="lead-delete-button" aria-label={`Xóa khách quan tâm ${item.customer.name}`} onClick={() => void deleteLead(item.id, item.customer.name)}><Trash2 size={16} /></button></td>
                 </tr>)}
               </tbody>
             </table>
@@ -312,7 +325,7 @@ export function LeadsPage() {
       <div className={open ? 'lead-drawer-overlay open' : 'lead-drawer-overlay'} onMouseDown={(event) => { if (event.target === event.currentTarget) closeDrawer() }}>
         <aside className={open ? 'lead-drawer open' : 'lead-drawer'} aria-hidden={!open}>
           <header className="lead-drawer-header">
-            <div><h2>Thêm khách quan tâm</h2><p>Lưu nhu cầu để theo dõi và tư vấn sau.</p></div>
+            <div><h2>Thêm khách quan tâm</h2><p>Lưu nhu cầu của người chưa mua để theo dõi và tư vấn sau.</p></div>
             <button type="button" className="lead-drawer-close" onClick={closeDrawer} aria-label="Đóng"><X size={19} /></button>
           </header>
 
@@ -336,7 +349,7 @@ export function LeadsPage() {
                 <label><span>Đến</span><input type="number" min="0" value={form.budget_max} placeholder="VD: 60000000" onChange={(event) => setForm((current) => ({ ...current, budget_max: event.target.value }))} /></label>
                 <label><span>Hãng quan tâm</span><input value={form.interested_brand} placeholder="VD: Kawai" onChange={(event) => setForm((current) => ({ ...current, interested_brand: event.target.value }))} /></label>
                 <label><span>Model</span><input value={form.interested_model} placeholder="VD: KL-901" onChange={(event) => setForm((current) => ({ ...current, interested_model: event.target.value }))} /></label>
-                <label><span>Trạng thái</span><select value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as LeadStatus }))}><option value="new">Mới</option><option value="contacted">Đã liên hệ</option><option value="visited">Đã ghé shop</option><option value="considering">Đang cân nhắc</option><option value="won">Đã chuyển đổi</option><option value="lost">Đã mất</option></select></label>
+                <label><span>Trạng thái</span><select value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value as LeadStatus }))}><option value="new">Mới</option><option value="contacted">Đã liên hệ</option><option value="visited">Đã ghé shop</option><option value="considering">Đang cân nhắc</option><option value="won">Đã chuyển đổi</option></select></label>
                 <label><span>Ngày gọi lại</span><input type="date" value={form.follow_up_date} onChange={(event) => setForm((current) => ({ ...current, follow_up_date: event.target.value }))} /></label>
                 <label className="lead-form-full"><span>Ghi chú</span><textarea rows={5} maxLength={300} value={form.notes} placeholder="Thông tin cần nhớ khi tư vấn khách..." onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} /><small>{form.notes.length}/300</small></label>
               </div>

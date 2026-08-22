@@ -1,9 +1,9 @@
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, status
 
 from app.api.deps import get_warranty_service
-from app.schemas.warranty import WarrantyDetail
+from app.schemas.warranty import WarrantyCreate, WarrantyDetail
 from app.services.warranty_service import WarrantyService
 
 router = APIRouter(prefix="/warranties", tags=["Warranties"])
@@ -20,3 +20,11 @@ def expiring_warranties(
     service: WarrantyService = Depends(get_warranty_service),
 ) -> list[WarrantyDetail]:
     return service.expiring(days)
+
+
+@router.post("", response_model=WarrantyDetail, status_code=status.HTTP_201_CREATED)
+def create_warranty(
+    payload: WarrantyCreate,
+    service: WarrantyService = Depends(get_warranty_service),
+) -> WarrantyDetail:
+    return service.create(payload)

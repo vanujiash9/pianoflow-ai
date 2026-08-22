@@ -39,7 +39,16 @@ import type {
 
 import './customers.css'
 
-type CustomerFilter = 'all' | 'warranty' | 'purchased'
+type CustomerFilter = 'all' | 'warranty' | 'purchased' | 'maintenance'
+
+type CustomerFilterLabel = Record<CustomerFilter, string>
+
+const customerFilterLabels: CustomerFilterLabel = {
+  all: 'Tổng hợp hồ sơ',
+  warranty: 'Bảo hành còn hiệu lực',
+  purchased: 'Đã có giao dịch',
+  maintenance: 'Đã có bảo trì',
+}
 
 type CustomerRow = {
   customer: Customer
@@ -177,6 +186,7 @@ function CustomerDetail({
             <div className="customer-section-heading">
               <UserRound size={17} />
               <h3>Thông tin khách hàng</h3>
+              <p className="customer-section-note">Thông tin gốc để đối chiếu giao dịch, bảo hành và bảo trì.</p>
             </div>
 
             <dl className="customer-info-list">
@@ -204,7 +214,7 @@ function CustomerDetail({
               <header className="customer-activity-header">
                 <div>
                   <span className="customer-section-icon green"><PianoIcon size={17} /></span>
-                  <h3>Đàn đã mua</h3>
+                  <h3>Giao dịch đã ghi nhận</h3>
                 </div>
                 <span>{purchases.length} cây</span>
               </header>
@@ -212,8 +222,8 @@ function CustomerDetail({
               {purchases.length === 0 ? (
                 <div className="customer-empty-block">
                   <PianoIcon size={23} />
-                  <strong>Chưa mua đàn</strong>
-                  <span>Chưa có lịch sử mua đàn.</span>
+                  <strong>Chưa có giao dịch</strong>
+                  <span>Chưa phát sinh đơn mua hoặc phiếu liên quan.</span>
                 </div>
               ) : (
                 <div className="customer-purchase-list">
@@ -254,7 +264,7 @@ function CustomerDetail({
               <header className="customer-activity-header">
                 <div>
                   <span className="customer-section-icon violet"><Wrench size={16} /></span>
-                  <h3>Bảo trì / sửa chữa</h3>
+                  <h3>Bảo trì / sửa chữa hậu mãi</h3>
                 </div>
                 <span>{services.length} lần</span>
               </header>
@@ -263,7 +273,7 @@ function CustomerDetail({
                 <div className="customer-empty-block compact">
                   <Wrench size={22} />
                   <strong>Chưa có lịch sử bảo trì</strong>
-                  <span>Các lần chăm sóc đàn sẽ hiển thị tại đây.</span>
+                  <span>Các lần chăm sóc sau bán sẽ hiển thị tại đây.</span>
                 </div>
               ) : (
                 <div className="customer-service-list">
@@ -435,6 +445,10 @@ export function CustomersPage() {
       return rows.filter((row) => row.profile && row.profile.purchases.length > 0)
     }
 
+    if (filter === 'maintenance') {
+      return rows.filter((row) => row.profile && row.profile.services.length > 0)
+    }
+
     return rows.filter((row) => {
       const purchase = getLatestPurchase(row.profile)
       return Boolean(purchase?.warranty_status)
@@ -475,6 +489,7 @@ export function CustomersPage() {
             </button>
 
             <h1>Chi tiết khách hàng</h1>
+            <p className="customer-detail-intro">Khối này chỉ tổng hợp dữ liệu đã phát sinh từ bán hàng và hậu mãi.</p>
           </div>
         </div>
 
@@ -493,7 +508,7 @@ export function CustomersPage() {
     <div className="customers-page">
       <PageHeader
         title="Khách hàng"
-        subtitle=""
+        subtitle="Hồ sơ khách, lịch sử mua, bảo hành và bảo trì"
         actions={null}
       />
 
@@ -517,15 +532,19 @@ export function CustomersPage() {
         <div className="customer-filter-tabs">
           <button type="button" className={filter === 'all' ? 'active' : ''} onClick={() => setFilter('all')}>
             <ListFilter size={15} />
-            Tất cả
+            {customerFilterLabels.all}
           </button>
           <button type="button" className={filter === 'warranty' ? 'active' : ''} onClick={() => setFilter('warranty')}>
             <ShieldCheck size={15} />
-            Có bảo hành
+            {customerFilterLabels.warranty}
           </button>
           <button type="button" className={filter === 'purchased' ? 'active' : ''} onClick={() => setFilter('purchased')}>
             <Clock3 size={15} />
-            Đã mua đàn
+            {customerFilterLabels.purchased}
+          </button>
+          <button type="button" className={filter === 'maintenance' ? 'active' : ''} onClick={() => setFilter('maintenance')}>
+            <Wrench size={15} />
+            {customerFilterLabels.maintenance}
           </button>
         </div>
 

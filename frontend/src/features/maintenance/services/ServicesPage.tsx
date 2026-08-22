@@ -314,7 +314,7 @@ export function ServicesPage() {
     <div className="services-page">
       <PageHeader
         title="Bảo trì & sửa chữa"
-        subtitle="Quản lý lịch hẹn và lịch sử chăm sóc đàn sau bán."
+        subtitle=""
         actions={
           <button
             type="button"

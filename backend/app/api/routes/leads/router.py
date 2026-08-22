@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import uuid
 
-from fastapi import APIRouter, Depends, Query, status
+from fastapi import APIRouter, Depends, Query, Response, status
 
 from app.api.deps import get_lead_service
 from app.schemas.lead import LeadCreate, LeadRead, LeadUpdate
@@ -34,3 +34,16 @@ def update_lead(
     service: LeadService = Depends(get_lead_service),
 ) -> LeadRead:
     return service.update(lead_id, payload)
+
+
+@router.delete(
+    "/{lead_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    response_model=None,
+)
+def delete_lead(
+    lead_id: uuid.UUID,
+    service: LeadService = Depends(get_lead_service),
+) -> None:
+    service.delete(lead_id)

@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import uuid
-from datetime import date
+from datetime import date, datetime
 
-from sqlalchemy import CheckConstraint, Date, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import CheckConstraint, Date, DateTime, Enum, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.core.database import Base
@@ -31,5 +31,6 @@ class Lead(TimestampMixin, Base):
     )
     follow_up_date: Mapped[date | None] = mapped_column(Date, index=True)
     notes: Mapped[str | None] = mapped_column(Text)
+    deleted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), index=True)
 
     customer = relationship("Customer", back_populates="leads")

@@ -1,20 +1,20 @@
 from __future__ import annotations
 
-from enum import StrEnum
+from enum import Enum
 
 
-class PianoType(StrEnum):
+class PianoType(str, Enum):
     UPRIGHT = "upright"
     GRAND = "grand"
     DIGITAL = "digital"
 
 
-class PianoCondition(StrEnum):
+class PianoCondition(str, Enum):
     NEW = "new"
     USED = "used"
 
 
-class PianoStatus(StrEnum):
+class PianoStatus(str, Enum):
     AVAILABLE = "available"
     RESERVED = "reserved"
     INCOMING = "incoming"
@@ -24,7 +24,7 @@ class PianoStatus(StrEnum):
     SERVICE = "service"
 
 
-class LeadStatus(StrEnum):
+class LeadStatus(str, Enum):
     NEW = "new"
     CONTACTED = "contacted"
     VISITED = "visited"
@@ -34,13 +34,13 @@ class LeadStatus(StrEnum):
     LOST = "lost"
 
 
-class ServiceStatus(StrEnum):
+class ServiceStatus(str, Enum):
     SCHEDULED = "scheduled"
     IN_PROGRESS = "in_progress"
     COMPLETED = "completed"
     CANCELLED = "cancelled"
 
 
-class MessageRole(StrEnum):
+class MessageRole(str, Enum):
     USER = "user"
     ASSISTANT = "assistant"

@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 from collections import OrderedDict
-from datetime import date
+from datetime import date, datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.customer import Customer
 from app.models.enums import PianoStatus
+from app.models.lead import Lead
 from app.models.piano import Piano
 from app.models.sale import Sale
 from app.repositories.lead_repository import LeadRepository
@@ -19,7 +20,11 @@ from app.schemas.dashboard import (
     DashboardRead,
     MonthlySalesPoint,
     RecentCustomer,
+    RecentDeletedCustomer,
+    RecentDeletedItem,
+    RecentDeletedLead,
 )
+from app.services.customer_service import CustomerService
 
 
 MONTHS_VI = ["Th1", "Th2", "Th3", "Th4", "Th5", "Th6", "Th7", "Th8", "Th9", "Th10", "Th11", "Th12"]
@@ -36,10 +41,24 @@ class DashboardService:
         self.warranties = WarrantyRepository(db)
         self.maintenance = ServiceRepository(db)
         self.leads = LeadRepository(db)
+        self.customers = CustomerService(db)
 
-    def get(self) -> DashboardRead:
+    def get(self, sales_range: int = 3) -> DashboardRead:
         today = date.today()
         month_start = today.replace(day=1)
+        sales_range = max(3, min(sales_range, 12))
+
+        months = sales_range
+
+        if months % 3 != 0:
+            months = months - (months % 3)
+        if months < 3:
+            months = 3
+
+        if months > 12:
+            months = 12
+
+
 
         available_pianos = self.db.scalar(
             select(func.count(Piano.id)).where(Piano.status == PianoStatus.AVAILABLE)
@@ -61,13 +80,16 @@ class DashboardService:
                 total_customers=total_customers,
                 action_items=action_items,
             ),
-            sales_by_month=self._sales_by_month(today),
+            sales_by_month=self._sales_by_month(today, months),
             attention_items=self._attention_items(expiring, maintenance_due, followups),
             recent_customers=self._recent_customers(),
+            recent_deleted_customers=self._recent_deleted_customers(),
+            recent_deleted_leads=self._recent_deleted_leads(),
+            recent_deleted_items=self._recent_deleted_items(),
         )
 
-    def _sales_by_month(self, today: date) -> list[MonthlySalesPoint]:
-        starts = [_month_start(today, offset) for offset in range(-5, 1)]
+    def _sales_by_month(self, today: date, months: int) -> list[MonthlySalesPoint]:
+        starts = [_month_start(today, offset) for offset in range(-(months - 1), 1)]
         first = starts[0]
         counts: OrderedDict[tuple[int, int], int] = OrderedDict(
             ((item.year, item.month), 0) for item in starts
@@ -131,6 +153,7 @@ class DashboardService:
     def _recent_customers(self) -> list[RecentCustomer]:
         stmt = (
             select(Customer)
+            .where(Customer.deleted_at.is_(None))
             .options(joinedload(Customer.sales).joinedload(Sale.piano), joinedload(Customer.sales).joinedload(Sale.warranty))
             .order_by(Customer.created_at.desc())
             .limit(6)
@@ -153,3 +176,59 @@ class DashboardService:
                 )
             )
         return output
+
+    def _recent_deleted_customers(self) -> list[RecentDeletedCustomer]:
+        rows = self.db.scalars(
+            select(Customer)
+            .where(Customer.deleted_at.is_not(None))
+            .order_by(Customer.deleted_at.desc())
+            .limit(6)
+        ).all()
+        return [
+            RecentDeletedCustomer(
+                name=item.name,
+                phone=item.phone,
+                deleted_at=item.deleted_at or datetime.combine(date.today(), datetime.min.time()),
+            )
+            for item in rows
+        ]
+
+    def _recent_deleted_leads(self) -> list[RecentDeletedLead]:
+        rows = self.db.scalars(
+            select(Lead)
+            .where(Lead.deleted_at.is_not(None))
+            .options(joinedload(Lead.customer))
+            .order_by(Lead.deleted_at.desc())
+            .limit(6)
+        ).all()
+        return [
+            RecentDeletedLead(
+                name=item.customer.name,
+                phone=item.customer.phone,
+                deleted_at=item.deleted_at or datetime.combine(date.today(), datetime.min.time()),
+            )
+            for item in rows
+        ]
+
+    def _recent_deleted_items(self) -> list[RecentDeletedItem]:
+        items = [
+            RecentDeletedItem(kind="customer", name=item.name, phone=item.phone, deleted_at=item.deleted_at)
+            for item in self.db.scalars(
+                select(Customer)
+                .where(Customer.deleted_at.is_not(None))
+                .order_by(Customer.deleted_at.desc())
+                .limit(6)
+            ).all()
+        ]
+        items.extend(
+            RecentDeletedItem(kind="lead", name=item.customer.name, phone=item.customer.phone, deleted_at=item.deleted_at)
+            for item in self.db.scalars(
+                select(Lead)
+                .where(Lead.deleted_at.is_not(None))
+                .options(joinedload(Lead.customer))
+                .order_by(Lead.deleted_at.desc())
+                .limit(6)
+            ).all()
+        )
+        items.sort(key=lambda item: item.deleted_at)
+        return items[-6:][::-1]

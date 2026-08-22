@@ -1,0 +1,43 @@
+.sidebar-user-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-user-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 14px;
+  background: rgba(248, 113, 113, 0.14);
+  color: #fecaca;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.sidebar-user-action:hover {
+  background: rgba(248, 113, 113, 0.24);
+  transform: translateY(-1px);
+}
+
+.logout-icon {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}

@@ -1,0 +1,13 @@
+- main [ref=f1e3]:
+  - generic [ref=f1e4]:
+    - generic [ref=f1e5]:
+      - button [ref=f1e6] [cursor=pointer]: Đăng nhập
+      - button [ref=f1e7] [cursor=pointer]: Đăng ký
+    - complementary [ref=f1e8]:
+      - generic [ref=f1e9]
+      - paragraph [ref=f1e14]: Một giao diện nội bộ cho khách hàng, bán hàng, bảo hành và trợ lý AI.
+    - generic [ref=f1e16]:
+      - generic [ref=f1e17]
+      - heading "Đăng nhập PianoFlow" [level=2] [ref=f1e20]
+      - paragraph [ref=f1e21]: Chỉ tài khoản nội bộ được phép truy cập.
+      - generic [ref=f1e22]

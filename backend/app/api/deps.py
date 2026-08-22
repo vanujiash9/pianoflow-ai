@@ -1,10 +1,11 @@
 from __future__ import annotations
 
-from fastapi import Depends
+from fastapi import Depends, Request
 from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.services.ai_service import AIService
+from app.services.auth_service import AuthService
 from app.services.customer_service import CustomerService
 from app.services.dashboard_service import DashboardService
 from app.services.lead_service import LeadService
@@ -44,3 +45,11 @@ def get_dashboard_service(db: Session = Depends(get_db)) -> DashboardService:
 
 def get_ai_service(db: Session = Depends(get_db)) -> AIService:
     return AIService(db)
+
+
+def get_auth_service(db: Session = Depends(get_db)) -> AuthService:
+    return AuthService(db)
+
+
+def get_current_user(request: Request, service: AuthService = Depends(get_auth_service)):
+    return service.current_user(request)

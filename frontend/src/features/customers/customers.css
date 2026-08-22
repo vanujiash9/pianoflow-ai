@@ -114,7 +114,7 @@
 }
 
 .customer-filter-tabs button {
-  min-width: 110px;
+  min-width: 96px;
 
   padding: 0 12px;
 
@@ -393,6 +393,88 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
+}
+
+@media (max-width: 900px) {
+  .customers-toolbar {
+    min-height: 0;
+    flex-wrap: wrap;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .customers-search {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .customer-filter-tabs {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .customers-total {
+    margin-left: 0;
+  }
+
+  .customer-detail-hero {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    padding: 18px;
+  }
+}
+
+@media (max-width: 650px) {
+  .customers-page,
+  .customer-detail-page {
+    gap: 12px;
+  }
+
+  .customers-toolbar {
+    padding: 12px;
+  }
+
+  .customer-filter-tabs button {
+    min-width: 0;
+    flex: 1 1 0;
+    padding: 0 10px;
+  }
+
+  .customers-table-card {
+    border-radius: 12px;
+  }
+
+  .customers-table-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+    padding: 10px 12px 12px;
+  }
+
+  .customer-detail-header {
+    min-height: 0;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .customer-detail-header h1 {
+    font-size: 22px;
+  }
+
+  .customer-detail-hero {
+    padding: 16px;
+  }
+
+  .customer-detail-person {
+    align-items: flex-start;
+  }
+
+  .customer-detail-avatar {
+    width: 56px;
+    height: 56px;
+    flex-basis: 56px;
+  }
 }
 
 .customer-detail-header h1 {
@@ -1087,6 +1169,7 @@
 @media (max-width: 900px) {
   .customers-toolbar {
     flex-wrap: wrap;
+    align-items: stretch;
   }
 
   .customers-search {
@@ -1103,6 +1186,11 @@
 
   .customers-total {
     display: none;
+  }
+
+  .customer-detail-header,
+  .customer-detail-loading {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1167,5 +1255,13 @@
   .customer-service-row
   .status-badge {
     grid-column: 2;
+  }
+}
+
+@media (max-width: 480px) {
+  .customer-filter-tabs button {
+    min-width: 0;
+    padding: 0 8px;
+    font-size: 9px;
   }
 }

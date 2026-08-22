@@ -26,7 +26,7 @@ class SaleCreate(StrictModel):
         if self.piano_id is None and not self.serial_number:
             raise BusinessRuleError("Phải cung cấp piano_id hoặc serial_number")
         if self.sale_date > date.today():
-            raise BusinessRuleError("Ngày bán không được lớn hơn ngày hiện tại")
+            raise BusinessRuleError("Ngày bán phải nhỏ hơn hoặc bằng ngày hiện tại")
         return self
 
 

@@ -27,6 +27,11 @@ class Settings(BaseSettings):
     )
     database_url: str = "sqlite:///./pianoflow.db"
     auto_create_tables: bool = True
+    auth_secret: str = Field(default="", validation_alias=AliasChoices("AUTH_SECRET"))
+    auth_seed_username: str = Field(default="admin", validation_alias=AliasChoices("AUTH_SEED_USERNAME"))
+    auth_seed_password: str = Field(default="admin12345", validation_alias=AliasChoices("AUTH_SEED_PASSWORD"))
+    auth_seed_role: str = Field(default="admin", validation_alias=AliasChoices("AUTH_SEED_ROLE"))
+    auth_cookie_secure: bool = Field(default=False, validation_alias=AliasChoices("AUTH_COOKIE_SECURE"))
 
     llm_enabled: bool = Field(default=False, validation_alias=AliasChoices("LLM_ENABLED", "OPENAI__ENABLED"))
     llm_base_url: str = Field(

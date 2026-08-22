@@ -44,6 +44,15 @@ class LeadService:
         self.db.commit()
         return self._to_read(self.repo.get_by_id(updated.id) or updated)
 
+    def delete(self, lead_id: uuid.UUID) -> None:
+        entity = self.repo.get_by_id(lead_id)
+        if not entity:
+            raise NotFoundError("Không tìm thấy khách đang quan tâm")
+        self.repo.soft_delete(entity)
+        self.db.commit()
+        self.db.refresh(entity)
+        self.customers.recent_deleted(1)
+
     def update_status_if_active(self, customer_id: uuid.UUID, status: LeadStatus) -> None:
         entity = self.repo.get_active_by_customer_id(customer_id)
         if not entity:

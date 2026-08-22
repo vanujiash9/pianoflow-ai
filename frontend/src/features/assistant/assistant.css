@@ -330,7 +330,7 @@
 
 @media (max-width: 800px) {
   .assistant-page {
-    height: calc(100dvh - 70px);
+    height: calc(100dvh - 64px);
   }
 
   .assistant-message {

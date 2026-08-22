@@ -7,6 +7,7 @@ from app.models.lead import Lead
 from app.models.piano import Piano
 from app.models.sale import Sale
 from app.models.service_record import ServiceRecord
+from app.models.user import User
 from app.models.warranty import Warranty
 
 __all__ = [
@@ -17,5 +18,6 @@ __all__ = [
     "Piano",
     "Sale",
     "ServiceRecord",
+    "User",
     "Warranty",
 ]

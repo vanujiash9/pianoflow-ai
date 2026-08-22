@@ -27,6 +27,51 @@
   gap: 14px;
 }
 
+@media (max-width: 850px) {
+  .search-results-grid,
+  .search-loading {
+    grid-template-columns: 1fr;
+  }
+
+  .search-result-panel {
+    min-height: 260px;
+  }
+}
+
+@media (max-width: 600px) {
+  .search-page {
+    gap: 12px;
+  }
+
+  .search-results-grid,
+  .search-loading {
+    gap: 12px;
+  }
+
+  .search-result-header {
+    padding: 12px 14px;
+    min-height: 58px;
+  }
+
+  .search-result-heading h2 {
+    font-size: 16px;
+  }
+
+  .search-result-list {
+    padding: 6px 10px 10px;
+  }
+
+  .search-result-row {
+    align-items: flex-start;
+  }
+
+  .search-result-main span {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+}
+
 
 /* PANEL */
 

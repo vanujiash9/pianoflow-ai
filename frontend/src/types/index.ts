@@ -125,6 +125,24 @@ export interface DashboardData {
     last_purchase_date: string | null
     warranty_status: string | null
   }[]
+  recent_deleted_customers: {
+    kind: 'customer'
+    name: string
+    phone: string
+    deleted_at: string
+  }[]
+  recent_deleted_leads: {
+    kind: 'lead'
+    name: string
+    phone: string
+    deleted_at: string
+  }[]
+  recent_deleted_items: {
+    kind: 'customer' | 'lead'
+    name: string
+    phone: string
+    deleted_at: string
+  }[]
 }
 
 export interface CustomerProfile {

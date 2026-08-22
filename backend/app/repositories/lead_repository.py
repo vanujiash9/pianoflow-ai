@@ -24,8 +24,11 @@ class LeadRepository:
         self.db = db
 
     def list(self, search: str | None = None) -> list[Lead]:
-        stmt = select(Lead).options(joinedload(Lead.customer)).order_by(
-            Lead.follow_up_date.is_(None), Lead.follow_up_date, Lead.created_at.desc()
+        stmt = (
+            select(Lead)
+            .where(Lead.deleted_at.is_(None))
+            .options(joinedload(Lead.customer))
+            .order_by(Lead.follow_up_date.is_(None), Lead.follow_up_date, Lead.created_at.desc())
         )
         if search:
             pattern = f"%{search.strip()}%"
@@ -33,7 +36,7 @@ class LeadRepository:
         return list(self.db.scalars(stmt).unique().all())
 
     def get_by_id(self, lead_id: uuid.UUID) -> Lead | None:
-        stmt = select(Lead).where(Lead.id == lead_id).options(joinedload(Lead.customer))
+        stmt = select(Lead).where(Lead.id == lead_id, Lead.deleted_at.is_(None)).options(joinedload(Lead.customer))
         return self.db.scalar(stmt)
 
     def get_active_by_customer_id(self, customer_id: uuid.UUID, *, exclude_id: uuid.UUID | None = None) -> Lead | None:
@@ -76,5 +79,13 @@ class LeadRepository:
 
     def update_status(self, entity: Lead, status: LeadStatus) -> Lead:
         entity.status = status
+        self.db.flush()
+        return entity
+
+    def soft_delete(self, entity: Lead) -> Lead:
+        from datetime import datetime, timezone
+
+        entity.deleted_at = datetime.now(timezone.utc)
+        self.db.add(entity)
         self.db.flush()
         return entity

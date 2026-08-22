@@ -94,8 +94,16 @@ class CustomerService:
         if not normalized_phone:
             raise ConflictError("Số điện thoại đã tồn tại")
 
-        entity = self.repo.get_by_phone(normalized_phone)
+        entity = self.repo.get_by_phone(normalized_phone, include_deleted=True)
         if entity:
+            if entity.deleted_at is not None:
+                entity = self.repo.restore(
+                    entity,
+                    name=name,
+                    phone=normalized_phone,
+                    address=address,
+                    notes=notes,
+                )
             return entity
 
         entity = self.repo.create_entity(
@@ -135,7 +143,19 @@ class CustomerService:
             raise NotFoundError("Không tìm thấy khách hàng")
         if data.phone and data.phone != entity.phone and self.repo.get_by_phone(data.phone):
             raise ConflictError("Số điện thoại đã tồn tại")
+        if data.phone and data.phone != entity.phone and self.repo.get_by_phone(data.phone, include_deleted=True):
+            raise ConflictError("Số điện thoại đã tồn tại")
         updated = self.repo.update(entity, data)
         self.db.commit()
         self.db.refresh(updated)
         return CustomerRead.model_validate(updated)
+
+    def delete(self, customer_id: uuid.UUID) -> None:
+        entity = self.repo.get(customer_id)
+        if not entity:
+            raise NotFoundError("Không tìm thấy khách hàng")
+        self.repo.soft_delete(entity)
+        self.db.commit()
+
+    def recent_deleted(self, limit: int = 5):
+        return self.repo.list_deleted_recent(limit)
