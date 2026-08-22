@@ -9,12 +9,12 @@ import { ApiError } from '../../lib/api'
 import { buildWarrantyNotes, createWarrantySale } from './lib/api'
 import { formatPrintDate, SHOP_ADDRESS, SHOP_PHONES, SHOP_TITLE, getReceiptCode, printLabel } from './lib/warranty-print'
 
+import './warranties-print.css'
+
 function fmtDate(value: string) {
   if (!value) return ' '
   return new Date(`${value}T00:00:00`).toLocaleDateString('vi-VN')
 }
-
-import './warranties-print.css'
 
 type WarrantyFormState = {
   customerName: string
@@ -27,7 +27,9 @@ type WarrantyFormState = {
   notes: string
 }
 
-const initialState: WarrantyFormState = {
+type WarrantyFormErrors = Partial<Record<keyof WarrantyFormState, string>>
+
+const initialForm: WarrantyFormState = {
   customerName: '',
   customerPhone: '',
   customerAddress: '',
@@ -38,8 +40,62 @@ const initialState: WarrantyFormState = {
   notes: '',
 }
 
+function hasLetter(value: string) {
+  return /[A-Za-zÀ-ỹà-ỹ]/.test(value)
+}
+
+function hasDigit(value: string) {
+  return /\d/.test(value)
+}
+
+function isTenDigitPhone(value: string) {
+  return /^\d{10}$/.test(value)
+}
+
+function validateField(name: keyof WarrantyFormState, value: string, form: WarrantyFormState): string {
+  const trimmed = value.trim()
+
+  switch (name) {
+    case 'customerName':
+      if (!trimmed) return 'Họ tên khách hàng không được để trống.'
+      if (!hasLetter(trimmed)) return 'Họ tên phải có chữ.'
+      if (hasDigit(trimmed)) return 'Họ tên không được chứa số.'
+      return ''
+    case 'customerPhone':
+      if (!trimmed) return 'Số điện thoại không được để trống.'
+      if (!/^\d+$/.test(trimmed)) return 'Số điện thoại chỉ gồm số.'
+      if (!isTenDigitPhone(trimmed)) return 'Số điện thoại phải đủ 10 chữ số.'
+      return ''
+    case 'customerAddress':
+      if (!trimmed) return 'Địa chỉ không được để trống.'
+      if (!hasLetter(trimmed)) return 'Địa chỉ phải có chữ.'
+      return ''
+    case 'pianoName':
+      if (!trimmed) return 'Tên đàn không được để trống.'
+      return ''
+    case 'serialNumber':
+      if (!trimmed) return 'Serial không được để trống.'
+      if (!/^[A-Za-z0-9\-_.\s]+$/.test(trimmed)) return 'Serial chỉ gồm chữ, số và ký tự - _ .'
+      return ''
+    case 'startDate':
+      if (!trimmed) return 'Vui lòng chọn ngày bắt đầu bảo hành.'
+      if (new Date(`${trimmed}T00:00:00`) > new Date()) return 'Ngày bắt đầu phải nhỏ hơn hoặc bằng ngày hiện tại.'
+      if (form.endDate && new Date(`${form.endDate}T00:00:00`) <= new Date(`${trimmed}T00:00:00`)) return 'Ngày kết thúc phải sau ngày bắt đầu.'
+      return ''
+    case 'endDate':
+      if (!trimmed) return 'Vui lòng chọn ngày kết thúc bảo hành.'
+      if (form.startDate && new Date(`${trimmed}T00:00:00`) <= new Date(`${form.startDate}T00:00:00`)) return 'Ngày kết thúc phải sau ngày bắt đầu.'
+      return ''
+    case 'notes':
+      return ''
+    default:
+      return ''
+  }
+}
+
 export function WarrantiesPrintPage() {
-  const [form, setForm] = useState<WarrantyFormState>(initialState)
+  const [form, setForm] = useState<WarrantyFormState>(initialForm)
+  const [errors, setErrors] = useState<WarrantyFormErrors>({})
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -54,32 +110,39 @@ export function WarrantiesPrintPage() {
     return Math.max(Math.round(diffMs / (1000 * 60 * 60 * 24 * 30)), 1)
   }, [form.endDate, form.startDate])
 
+  const updateField = (name: keyof WarrantyFormState, value: string) => {
+    setForm((current) => {
+      const next = { ...current, [name]: value }
+      setErrors((currentErrors) => ({
+        ...currentErrors,
+        [name]: validateField(name, value, next),
+        ...(name === 'startDate' ? { endDate: validateField('endDate', next.endDate, next) } : {}),
+        ...(name === 'endDate' ? { startDate: validateField('startDate', next.startDate, next) } : {}),
+      }))
+      setError('')
+      return next
+    })
+  }
+
   const submitAndPrint = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     if (saving) return
 
-    if (!form.customerName.trim()) {
-      setError('Vui lòng nhập họ tên khách hàng.')
-      return
+    const nextErrors: WarrantyFormErrors = {
+      customerName: validateField('customerName', form.customerName, form),
+      customerPhone: validateField('customerPhone', form.customerPhone, form),
+      customerAddress: validateField('customerAddress', form.customerAddress, form),
+      pianoName: validateField('pianoName', form.pianoName, form),
+      serialNumber: validateField('serialNumber', form.serialNumber, form),
+      startDate: validateField('startDate', form.startDate, form),
+      endDate: validateField('endDate', form.endDate, form),
+      notes: '',
     }
-    if (!form.customerPhone.trim()) {
-      setError('Vui lòng nhập số điện thoại.')
-      return
-    }
-    if (!form.serialNumber.trim()) {
-      setError('Vui lòng nhập serial đàn.')
-      return
-    }
-    if (!form.startDate) {
-      setError('Vui lòng chọn ngày bắt đầu bảo hành.')
-      return
-    }
-    if (!form.endDate) {
-      setError('Vui lòng chọn ngày kết thúc bảo hành.')
-      return
-    }
-    if (new Date(`${form.endDate}T00:00:00`) <= new Date(`${form.startDate}T00:00:00`)) {
-      setError('Ngày kết thúc phải sau ngày bắt đầu.')
+    setErrors(nextErrors)
+
+    const hasError = Object.values(nextErrors).some(Boolean)
+    if (hasError) {
+      setError('Vui lòng sửa các lỗi trong form.')
       return
     }
 
@@ -110,11 +173,13 @@ export function WarrantiesPrintPage() {
     }
   }
 
+  const fieldError = (name: keyof WarrantyFormState) => errors[name]
+
   return (
     <div className="warranty-create-page">
       <PageHeader
         title="Tạo phiếu bảo hành"
-        subtitle="Nhập khách hàng, serial và thời gian bảo hành để lưu rồi in phiếu. Trường Đàn chỉ là ghi chú hiển thị, không dùng để tra cứu."
+        subtitle="Nhập khách hàng, serial và thời gian bảo hành để lưu rồi in phiếu."
         actions={
           <button type="submit" form="warranty-create-form" className="primary-button print-hide" disabled={saving}>
             <Printer size={16} />
@@ -128,33 +193,40 @@ export function WarrantiesPrintPage() {
       <div className="warranty-create-layout">
         <form id="warranty-create-form" className="panel warranty-create-form print-hide" onSubmit={submitAndPrint}>
           <div className="warranty-form-fields">
-            <label className="warranty-field span-2">
+            <label className={`warranty-field span-2 ${fieldError('customerName') ? 'has-error' : ''}`}>
               <span>Họ tên khách hàng</span>
-              <input value={form.customerName} onChange={(event) => setForm((current) => ({ ...current, customerName: event.target.value }))} placeholder="Nhập họ tên" />
+              <input value={form.customerName} onChange={(event) => updateField('customerName', event.target.value)} placeholder="Nhập họ tên" />
+              {fieldError('customerName') && <small className="field-error">{fieldError('customerName')}</small>}
             </label>
-            <label className="warranty-field">
+            <label className={`warranty-field ${fieldError('customerPhone') ? 'has-error' : ''}`}>
               <span>Số điện thoại</span>
-              <input value={form.customerPhone} onChange={(event) => setForm((current) => ({ ...current, customerPhone: event.target.value }))} placeholder="Nhập số điện thoại" />
+              <input value={form.customerPhone} onChange={(event) => updateField('customerPhone', event.target.value)} placeholder="Nhập số điện thoại" />
+              {fieldError('customerPhone') && <small className="field-error">{fieldError('customerPhone')}</small>}
             </label>
-            <label className="warranty-field span-2">
+            <label className={`warranty-field span-2 ${fieldError('customerAddress') ? 'has-error' : ''}`}>
               <span>Địa chỉ</span>
-              <input value={form.customerAddress} onChange={(event) => setForm((current) => ({ ...current, customerAddress: event.target.value }))} placeholder="Nhập địa chỉ" />
+              <input value={form.customerAddress} onChange={(event) => updateField('customerAddress', event.target.value)} placeholder="Nhập địa chỉ" />
+              {fieldError('customerAddress') && <small className="field-error">{fieldError('customerAddress')}</small>}
             </label>
-            <label className="warranty-field span-2">
+            <label className={`warranty-field span-2 ${fieldError('pianoName') ? 'has-error' : ''}`}>
               <span>Đàn</span>
-              <input value={form.pianoName} onChange={(event) => setForm((current) => ({ ...current, pianoName: event.target.value }))} placeholder="Nhập tên đàn / model" />
+              <input value={form.pianoName} onChange={(event) => updateField('pianoName', event.target.value)} placeholder="Nhập tên đàn / model" />
+              {fieldError('pianoName') && <small className="field-error">{fieldError('pianoName')}</small>}
             </label>
-            <label className="warranty-field">
+            <label className={`warranty-field ${fieldError('serialNumber') ? 'has-error' : ''}`}>
               <span>Serial</span>
-              <input value={form.serialNumber} onChange={(event) => setForm((current) => ({ ...current, serialNumber: event.target.value }))} placeholder="Nhập serial" />
+              <input value={form.serialNumber} onChange={(event) => updateField('serialNumber', event.target.value)} placeholder="Nhập serial" />
+              {fieldError('serialNumber') && <small className="field-error">{fieldError('serialNumber')}</small>}
             </label>
-            <label className="warranty-field">
+            <label className={`warranty-field ${fieldError('startDate') ? 'has-error' : ''}`}>
               <span>Bắt đầu</span>
-              <input type="date" value={form.startDate} onChange={(event) => setForm((current) => ({ ...current, startDate: event.target.value }))} />
+              <input type="date" value={form.startDate} onChange={(event) => updateField('startDate', event.target.value)} />
+              {fieldError('startDate') && <small className="field-error">{fieldError('startDate')}</small>}
             </label>
-            <label className="warranty-field">
+            <label className={`warranty-field ${fieldError('endDate') ? 'has-error' : ''}`}>
               <span>Kết thúc</span>
-              <input type="date" value={form.endDate} onChange={(event) => setForm((current) => ({ ...current, endDate: event.target.value }))} />
+              <input type="date" value={form.endDate} onChange={(event) => updateField('endDate', event.target.value)} />
+              {fieldError('endDate') && <small className="field-error">{fieldError('endDate')}</small>}
             </label>
             <label className="warranty-field span-2">
               <span>Ngày in</span>
@@ -162,7 +234,7 @@ export function WarrantiesPrintPage() {
             </label>
             <label className="warranty-field span-2">
               <span>Ghi chú</span>
-              <textarea rows={3} value={form.notes} onChange={(event) => setForm((current) => ({ ...current, notes: event.target.value }))} placeholder="Điền lưu ý nếu có" />
+              <textarea rows={3} value={form.notes} onChange={(event) => updateField('notes', event.target.value)} placeholder="Điền lưu ý nếu có" />
             </label>
           </div>
         </form>
