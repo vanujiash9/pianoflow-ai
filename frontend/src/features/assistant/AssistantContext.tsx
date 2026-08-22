@@ -103,6 +103,7 @@ export function AssistantProvider({ children }: { children: ReactNode }): ReactE
     const value = message.trim()
     if (!value || isResponding) return
 
+    setDraft('')
     setMessages((current) => [...current, { role: 'user', content: value }])
     setIsResponding(true)
     setError('')

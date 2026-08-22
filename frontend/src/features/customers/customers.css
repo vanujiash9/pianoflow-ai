@@ -516,18 +516,18 @@
    ========================================================= */
 
 .customer-detail-hero {
-  min-height: 155px;
+  min-height: 164px;
 
-  padding: 21px 23px;
+  padding: 24px 24px;
 
   display: grid;
   grid-template-columns:
-    minmax(290px, 1fr)
-    minmax(430px, 1.1fr);
+    minmax(300px, 1fr)
+    minmax(410px, 1.1fr);
 
   align-items: center;
 
-  gap: 25px;
+  gap: 22px;
 
   border: 1px solid #e4e8ee;
   border-radius: 15px;
@@ -535,7 +535,33 @@
   background: #fff;
 
   box-shadow:
-    0 4px 18px rgba(31, 41, 64, 0.025);
+    0 5px 20px rgba(31, 41, 64, 0.03);
+}
+
+.customer-detail-person-copy {
+  min-width: 0;
+}
+
+.customer-detail-name-row h2 {
+  font-size: 20px;
+}
+
+.customer-type-badge {
+  padding: 4px 8px;
+
+  font-size: 9px;
+}
+
+.customer-detail-contact span {
+  color: #657084;
+
+  font-size: 11px;
+}
+
+.customer-detail-note {
+  max-width: 320px;
+
+  font-size: 9.5px;
 }
 
 .customer-detail-person {
@@ -650,14 +676,14 @@
 }
 
 .customer-stat-card {
-  min-height: 82px;
+  min-height: 88px;
 
-  padding: 13px;
+  padding: 14px;
 
   display: flex;
   align-items: center;
 
-  gap: 10px;
+  gap: 11px;
 
   border: 1px solid #e8ebf0;
   border-radius: 12px;
@@ -666,10 +692,10 @@
 }
 
 .customer-stat-icon {
-  width: 38px;
-  height: 38px;
+  width: 40px;
+  height: 40px;
 
-  flex: 0 0 38px;
+  flex: 0 0 40px;
 
   display: grid;
   place-items: center;
@@ -695,9 +721,9 @@
 .customer-stat-card span {
   display: block;
 
-  color: #838d9e;
+  color: #7c8798;
 
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .customer-stat-card strong {
@@ -707,10 +733,18 @@
 
   color: #283245;
 
-  font-size: 20px;
+  font-size: 24px;
   line-height: 1;
 
   font-weight: 720;
+}
+
+.customer-stat-card:nth-child(2) .customer-stat-icon {
+  background: #e8f6ef;
+}
+
+.customer-stat-card:nth-child(2) .customer-stat-card strong {
+  color: #2e8a5d;
 }
 
 
@@ -721,12 +755,126 @@
 .customer-detail-content {
   display: grid;
   grid-template-columns:
-    280px
+    clamp(300px, 24vw, 320px)
     minmax(0, 1fr);
 
   gap: 12px;
 
   align-items: start;
+}
+
+.customer-info-card {
+  padding: 18px;
+}
+
+.customer-section-heading h3 {
+  font-size: 12px;
+}
+
+.customer-section-note {
+  margin: 0;
+
+  color: #8a94a4;
+
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.customer-info-list {
+  margin-top: 14px;
+}
+
+.customer-info-list > div {
+  min-height: 46px;
+
+  grid-template-columns:
+    108px
+    minmax(0, 1fr);
+}
+
+.customer-info-list dt {
+  font-size: 10px;
+}
+
+.customer-info-list dd {
+  font-size: 11px;
+}
+
+.customer-activity-header {
+  min-height: 52px;
+}
+
+.customer-activity-header h3 {
+  font-size: 12px;
+}
+
+.customer-activity-header > span {
+  font-size: 10px;
+}
+
+.customer-purchase-card {
+  min-height: 112px;
+}
+
+.customer-purchase-title h4 {
+  font-size: 13px;
+}
+
+.customer-purchase-title .mono {
+  font-size: 9.5px;
+}
+
+.customer-purchase-meta span {
+  font-size: 9px;
+}
+
+.customer-purchase-meta strong {
+  font-size: 10px;
+}
+
+.customer-service-row {
+  min-height: 66px;
+}
+
+.customer-service-main strong {
+  font-size: 11px;
+}
+
+.customer-service-main span {
+  font-size: 9.5px;
+}
+
+.customer-service-date span {
+  font-size: 9.5px;
+}
+
+.customer-service-date small {
+  font-size: 8.75px;
+}
+
+.customer-empty-block {
+  min-height: 132px;
+
+  gap: 5px;
+}
+
+.customer-empty-block.compact {
+  min-height: 112px;
+}
+
+.customer-empty-block strong {
+  font-size: 11px;
+}
+
+.customer-empty-block span {
+  font-size: 9.5px;
+}
+
+.customer-detail-loading {
+  grid-template-columns:
+    clamp(300px, 24vw, 320px)
+    1fr
+    1fr;
 }
 
 
@@ -1167,6 +1315,30 @@
 }
 
 @media (max-width: 900px) {
+  .customer-detail-hero {
+    padding: 18px;
+  }
+
+  .customer-detail-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-detail-content {
+    gap: 10px;
+  }
+
+  .customer-info-card {
+    padding: 16px;
+  }
+}
+
+@media (max-width: 760px) {
+  .customer-detail-loading {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 900px) {
   .customers-toolbar {
     flex-wrap: wrap;
     align-items: stretch;
@@ -1255,6 +1427,14 @@
   .customer-service-row
   .status-badge {
     grid-column: 2;
+  }
+
+  .customer-empty-block {
+    min-height: 120px;
+  }
+
+  .customer-empty-block.compact {
+    min-height: 104px;
   }
 }
 
