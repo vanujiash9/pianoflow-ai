@@ -38,3 +38,9 @@ backend/.venv/
 .playwright-mcp/
 warranty-print.png
 pianoflow-flow-handover.docx
+
+# repo-local noise
+.claude/
+.github/
+docs/
+.mcp.json
