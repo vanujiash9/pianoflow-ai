@@ -15,7 +15,7 @@ class ServiceRecord(TimestampMixin, Base):
     __tablename__ = "service_records"
     __table_args__ = (
         CheckConstraint(
-            "status IN ('SCHEDULED', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED')",
+            "status IN ('scheduled', 'in_progress', 'completed', 'cancelled')",
             name="ck_service_records_status_valid",
         ),
     )

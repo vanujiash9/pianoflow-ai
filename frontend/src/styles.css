@@ -564,6 +564,19 @@ a {
   margin: 0 auto;
 }
 
+.page-container:has(.assistant-page) {
+  overflow: hidden;
+  padding-bottom: 22px;
+}
+
+.page-container:has(.assistant-page) > .assistant-page {
+  height: 100%;
+}
+
+.page-container:has(.assistant-page) .assistant-chat {
+  min-height: 0;
+}
+
 .page-header {
   display: flex;
   justify-content: space-between;

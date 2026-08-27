@@ -6,6 +6,7 @@ import pytest
 from pydantic import ValidationError
 
 from app.core.exceptions import BusinessRuleError
+from app.models.enums import ServiceStatus
 from app.schemas.sale import SaleCreate
 
 
@@ -38,3 +39,12 @@ def test_sale_create_accepts_valid_payload():
     )
 
     assert payload.warranty_months == 12
+
+
+def test_service_status_values_match_database_schema():
+    assert [status.value for status in ServiceStatus] == [
+        "scheduled",
+        "in_progress",
+        "completed",
+        "cancelled",
+    ]

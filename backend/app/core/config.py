@@ -25,8 +25,15 @@ class Settings(BaseSettings):
             "http://127.0.0.1:5173",
         ]
     )
-    database_url: str = "sqlite:///./pianoflow.db"
-    auto_create_tables: bool = True
+    database_url: str = Field(default="", validation_alias=AliasChoices("DATABASE_URL"))
+    auto_create_tables: bool = Field(default=False, validation_alias=AliasChoices("AUTO_CREATE_TABLES"))
+    supabase_url: str = Field(default="", validation_alias=AliasChoices("SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_URL"))
+    supabase_publishable_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY"),
+    )
+    supabase_secret_key: str = Field(default="", validation_alias=AliasChoices("SUPABASE_SECRET_KEY"))
+    supabase_jwks_url: str = Field(default="", validation_alias=AliasChoices("SUPABASE_JWKS_URL"))
     auth_secret: str = Field(default="", validation_alias=AliasChoices("AUTH_SECRET"))
     auth_seed_username: str = Field(default="admin", validation_alias=AliasChoices("AUTH_SEED_USERNAME"))
     auth_seed_password: str = Field(default="admin12345", validation_alias=AliasChoices("AUTH_SEED_PASSWORD"))

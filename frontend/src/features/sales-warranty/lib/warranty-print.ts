@@ -27,6 +27,10 @@ export function printLabel(value: string | null | undefined): string {
 
 export function getReceiptCode(item: Warranty): string {
   const phoneTail = item.customer_phone.replace(/\D/g, '').slice(-3).padStart(3, '0')
-  const serialTail = item.serial_number.replace(/\W/g, '').slice(-3).toUpperCase().padStart(3, '0')
-  return `BH-${phoneTail}-${serialTail}`
+  return `BH-${phoneTail}`
+}
+
+export function getWarrantyPrintTitle(item: Warranty): string {
+  const phoneTail = item.customer_phone.replace(/\D/g, '').slice(-3).padStart(3, '0')
+  return `PhieuBaoHanh_${phoneTail}`
 }

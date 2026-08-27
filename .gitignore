@@ -11,6 +11,20 @@ backend/pianoflow.db
 frontend/node_modules/
 frontend/dist/
 frontend/.env
+frontend/tsconfig.app.tsbuildinfo
+frontend/test-results/
+frontend/playwright-report/
+frontend/.vite/
+after-login.md
+customer-detail-desktop.md
+customer-detail-desktop.png
+frontend-check.md
+frontend-console.txt
+frontend-login.png
+frontend-net.md
+frontend-snap.md
+login-before-submit.md
+login-page.md
 
 # IDE / OS
 .vscode/

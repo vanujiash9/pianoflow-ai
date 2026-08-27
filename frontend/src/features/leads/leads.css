@@ -78,8 +78,9 @@
 
   flex: 0 0 43px;
 
-  display: grid;
-  place-items: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 
   border-radius: 12px;
   line-height: 0;
@@ -87,7 +88,10 @@
 
 .lead-summary-icon svg {
   display: block;
-  transform: translateY(2px);
+}
+
+.lead-summary-icon svg {
+  display: block;
 }
 
 .lead-summary-icon.tone-indigo {
