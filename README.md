@@ -95,7 +95,7 @@ uvicorn app.main:app --reload --port 8000
 
 PianoFlow uses Supabase as **managed PostgreSQL** through SQLAlchemy. In Supabase, open **Connect** and copy a database connection string.
 
-For an IPv4-only environment, use the Supabase pooler. Convert the scheme for SQLAlchemy/psycopg:
+For an IPv4-only environment, use the Supabase pooler. Convert the scheme for SQLAlchemy/psycopg and point the backend at that URL:
 
 ```env
 DATABASE_URL=postgresql+psycopg://postgres.<project-ref>:<password>@<pooler-host>:5432/postgres
@@ -134,6 +134,24 @@ The agent currently exposes **read-only tools**:
 - `search_inventory`
 - `get_shop_overview`
 - `get_attention_list`
+
+### Supabase env keys
+
+Backend uses these keys when they are present:
+
+```env
+SUPABASE_URL=
+SUPABASE_PUBLISHABLE_KEY=
+SUPABASE_SECRET_KEY=
+SUPABASE_JWKS_URL=
+```
+
+Frontend only needs the `NEXT_PUBLIC_*` keys if it talks to Supabase directly:
+
+```env
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
+```
 
 This is intentional: data mutations stay in explicit UI forms in V1, so the model cannot accidentally change customer/shop data.
 
