@@ -144,7 +144,8 @@ export function DashboardPage() {
     const previous = salesSeries.slice(-(salesRange * 2), -salesRange)
     const previousTotal = previous.reduce((sum, item) => sum + item.count, 0)
     const growth = previousTotal > 0 ? Math.round(((total - previousTotal) / previousTotal) * 100) : null
-    return { total, growth, current }
+    const maxCount = Math.max(8, ...current.map((item) => item.count)) + 1
+    return { total, growth, current, maxCount }
   }, [salesRange, salesSeries])
 
   if (!data) {
@@ -232,7 +233,7 @@ export function DashboardPage() {
 
           <div className="dashboard-chart">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={salesSummary.current} margin={{ top: 8, right: 8, left: -24, bottom: 0 }} barCategoryGap="35%">
+              <BarChart data={salesSummary.current} margin={{ top: 24, right: 8, left: -24, bottom: 12 }} barCategoryGap="35%">
                 <defs>
                   <linearGradient id="dashboardBarGradient" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#5868f2" stopOpacity={1} />
@@ -245,7 +246,7 @@ export function DashboardPage() {
                 </defs>
                 <CartesianGrid vertical={false} stroke="#edf0f5" strokeDasharray="0" />
                 <XAxis dataKey="month" axisLine={false} tickLine={false} tick={{ fill: '#8b94a5', fontSize: 11 }} dy={8} />
-                <YAxis allowDecimals={false} axisLine={false} tickLine={false} tick={{ fill: '#a0a7b4', fontSize: 10 }} width={36} />
+                <YAxis allowDecimals={false} domain={[0, salesSummary.maxCount]} axisLine={false} tickLine={false} tick={{ fill: '#a0a7b4', fontSize: 10 }} width={36} />
                 <Tooltip cursor={{ fill: 'rgba(88, 104, 242, 0.035)' }} formatter={(value) => [`${value} đàn`, 'Đã bán']} contentStyle={{ border: '1px solid #e7eaf1', borderRadius: 10, boxShadow: '0 10px 30px rgba(31, 39, 64, 0.08)', fontSize: 12 }} />
                 <Bar dataKey="count" radius={[6, 6, 2, 2]} maxBarSize={48}>
                   <LabelList

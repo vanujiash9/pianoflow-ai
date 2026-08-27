@@ -1,4 +1,3 @@
-import { Printer } from 'lucide-react'
 import { type FormEvent, useMemo, useState } from 'react'
 
 import logoImage from '../../../img/logo.jpg'
@@ -7,7 +6,7 @@ import { PageHeader } from '../../components/ui/PageHeader'
 import { ApiError } from '../../lib/api'
 
 import { buildWarrantyNotes, createWarrantySale } from './lib/api'
-import { formatPrintDate, SHOP_ADDRESS, SHOP_PHONES, SHOP_TITLE, getReceiptCode, printLabel } from './lib/warranty-print'
+import { formatPrintDate, SHOP_ADDRESS, SHOP_PHONES, SHOP_TITLE, getReceiptCode, getWarrantyPrintTitle, printLabel } from './lib/warranty-print'
 
 import './warranties-print.css'
 
@@ -97,6 +96,7 @@ export function WarrantiesPrintPage() {
   const [form, setForm] = useState<WarrantyFormState>(initialForm)
   const [errors, setErrors] = useState<WarrantyFormErrors>({})
   const [saving, setSaving] = useState(false)
+  const [savedReceipt, setSavedReceipt] = useState<string>('')
   const [error, setError] = useState('')
 
   const receiptCode = useMemo(() => {
@@ -149,7 +149,8 @@ export function WarrantiesPrintPage() {
     try {
       setSaving(true)
       setError('')
-      await createWarrantySale({
+      setSavedReceipt('')
+      const result = await createWarrantySale({
         customer: {
           name: form.customerName.trim(),
           phone: form.customerPhone.trim(),
@@ -161,7 +162,11 @@ export function WarrantiesPrintPage() {
         warranty_months: warrantyMonths,
         notes: form.notes.trim() || null,
       })
-      setTimeout(() => requestAnimationFrame(() => window.print()), 0)
+      setSavedReceipt(result.id)
+      setForm(initialForm)
+      setErrors({})
+      document.title = getWarrantyPrintTitle(result)
+      window.print()
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message)
@@ -179,16 +184,15 @@ export function WarrantiesPrintPage() {
     <div className="warranty-create-page">
       <PageHeader
         title="Tạo phiếu bảo hành"
-        subtitle="Nhập khách hàng, serial và thời gian bảo hành để lưu rồi in phiếu."
         actions={
           <button type="submit" form="warranty-create-form" className="primary-button print-hide" disabled={saving}>
-            <Printer size={16} />
             {saving ? 'Đang lưu...' : 'Lưu và in phiếu'}
           </button>
         }
       />
 
       {error && <div className="error-banner">{error}</div>}
+      {savedReceipt && <div className="form-success">Đã lưu phiếu bảo hành #{savedReceipt}.</div>}
 
       <div className="warranty-create-layout">
         <form id="warranty-create-form" className="panel warranty-create-form print-hide" onSubmit={submitAndPrint}>

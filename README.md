@@ -101,13 +101,19 @@ For an IPv4-only environment, use the Supabase pooler. Convert the scheme for SQ
 DATABASE_URL=postgresql+psycopg://postgres.<project-ref>:<password>@<pooler-host>:5432/postgres
 ```
 
-For the first MVP run:
+For local SQLite development, you can keep:
 
 ```env
 AUTO_CREATE_TABLES=true
 ```
 
-Once you introduce migrations for a real deployment, switch this to `false` and manage schema changes explicitly.
+For Supabase or any deployed PostgreSQL database, set:
+
+```env
+AUTO_CREATE_TABLES=false
+```
+
+Then run Alembic migrations explicitly when schema changes.
 
 ## 3. Configure your OpenAI-compatible router/gateway
 

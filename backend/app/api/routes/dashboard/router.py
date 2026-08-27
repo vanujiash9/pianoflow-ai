@@ -14,4 +14,4 @@ def get_dashboard(
     service: DashboardService = Depends(get_dashboard_service),
     sales_range: int = Query(3, ge=3, le=12),
 ) -> DashboardRead:
-    return service.get(sales_range=sales_range)
+    return service.get(sales_range)

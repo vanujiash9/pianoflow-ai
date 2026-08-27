@@ -271,7 +271,33 @@
   flex: 1;
   min-width: 0;
   min-height: 0;
-  padding: 8px 8px 0 0;
+  padding: 8px 8px 10px 0;
+}
+
+.dashboard-chart .recharts-xAxis .recharts-cartesian-axis-tick-value {
+  font-size: 11px;
+  fill: #8b94a5;
+}
+
+.dashboard-chart .recharts-xAxis .recharts-cartesian-axis-tick-line {
+  display: none;
+}
+
+.dashboard-chart .recharts-xAxis .recharts-cartesian-axis-line {
+  stroke: #edf0f5;
+}
+
+.dashboard-chart .recharts-xAxis .recharts-cartesian-axis-tick {
+  transform: translateY(2px);
+}
+
+.dashboard-chart .recharts-xAxis .recharts-cartesian-axis-tick text {
+  font-size: 11px;
+}
+
+.dashboard-chart .recharts-xAxis .recharts-cartesian-axis-tick:last-child text {
+  font-weight: 700;
+  fill: #5868f2;
 }
 
 .dashboard-chart .recharts-text.recharts-label {

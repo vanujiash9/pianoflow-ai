@@ -335,7 +335,7 @@ def test_dashboard_uses_operational_metrics(client):
 
 
 def test_dashboard_returns_503_on_database_disconnect(client, monkeypatch):
-    def fail(self):
+    def fail(self, *args, **kwargs):
         raise OperationalError("SELECT 1", {}, Exception("server closed the connection unexpectedly"))
 
     monkeypatch.setattr(DashboardService, "get", fail)

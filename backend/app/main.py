@@ -23,12 +23,13 @@ settings = get_settings()
 async def lifespan(_: FastAPI):
     if settings.auto_create_tables:
         Base.metadata.create_all(bind=engine, checkfirst=True)
-        with engine.begin() as connection:
-            inspector = inspect(connection)
-            if "customers" in inspector.get_table_names():
-                customer_columns = {column["name"] for column in inspector.get_columns("customers")}
-                if "deleted_at" not in customer_columns:
-                    connection.execute(text("ALTER TABLE customers ADD COLUMN deleted_at DATETIME"))
+        if str(engine.url).startswith("sqlite"):
+            with engine.begin() as connection:
+                inspector = inspect(connection)
+                if "customers" in inspector.get_table_names():
+                    customer_columns = {column["name"] for column in inspector.get_columns("customers")}
+                    if "deleted_at" not in customer_columns:
+                        connection.execute(text("ALTER TABLE customers ADD COLUMN deleted_at DATETIME"))
     with SessionLocal() as db:
         user = db.scalar(select(User).where(User.username == settings.auth_seed_username))
         if user:

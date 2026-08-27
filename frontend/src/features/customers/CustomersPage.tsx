@@ -186,7 +186,6 @@ function CustomerDetail({
             <div className="customer-section-heading">
               <UserRound size={17} />
               <h3>Thông tin khách hàng</h3>
-              <p className="customer-section-note">Thông tin gốc để đối chiếu giao dịch, bảo hành và bảo trì.</p>
             </div>
 
             <dl className="customer-info-list">

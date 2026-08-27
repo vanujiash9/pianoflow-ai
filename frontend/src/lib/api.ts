@@ -103,7 +103,7 @@ function invalidateForRequest(path: string, method: string) {
     if (path.startsWith('/customers')) invalidateGroups(['customers', 'dashboard', 'sales'])
     else if (path.startsWith('/pianos')) invalidateGroups(['pianos', 'sales', 'services', 'dashboard'])
     else if (path.startsWith('/sales')) invalidateGroups(['sales', 'warranties', 'pianos', 'customers', 'dashboard'])
-    else if (path.startsWith('/warranties')) invalidateGroups(['warranties', 'dashboard'])
+    else if (path.startsWith('/warranties')) invalidateGroups(['warranties', 'sales', 'customers', 'pianos', 'dashboard'])
     else if (path.startsWith('/leads')) invalidateGroups(['leads', 'customers', 'dashboard'])
     else if (path.startsWith('/ai/conversations') || path.startsWith('/ai/chat')) invalidateGroups(['ai'])
   }

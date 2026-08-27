@@ -10,7 +10,6 @@ import {
   ShieldCheck,
   ShoppingBag,
   Users,
-  Settings2,
 } from 'lucide-react'
 import { useState } from 'react'
 import { NavLink, Outlet, useNavigate } from 'react-router-dom'
@@ -25,7 +24,6 @@ const nav = [
   { to: '/warranties', label: 'Bảo hành', icon: ShieldCheck },
   { to: '/leads', label: 'Khách tiềm năng', icon: ClipboardList },
   { to: '/assistant', label: 'Trợ lý AI', icon: Bot },
-  { to: '/settings/users', label: 'Người dùng', icon: Settings2 },
 ]
 
 export function Layout() {

@@ -12,7 +12,6 @@ import { LeadsPage } from './features/leads/LeadsPage'
 import { NotFoundPage } from './features/common/NotFoundPage'
 import { SalesPage } from './features/sales-warranty/SalesPage'
 import { SearchPage } from './features/inventory/SearchPage'
-import { UserManagementPage } from './features/settings/UserManagementPage'
 import { WarrantiesPage } from './features/sales-warranty/WarrantiesPage'
 import { WarrantiesPrintPage } from './features/sales-warranty/WarrantiesPrintPage'
 
@@ -28,7 +27,6 @@ const protectedRoutes = [
   { path: '/warranties/print', element: <WarrantiesPrintPage /> },
   { path: '/leads', element: <LeadsPage /> },
   { path: '/assistant', element: <AssistantPage /> },
-  { path: '/settings/users', element: <UserManagementPage /> },
 ] as const
 
 export default function App() {

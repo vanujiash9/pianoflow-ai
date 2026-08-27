@@ -1,0 +1,8 @@
+- main [ref=e3] [box=0,0,780,639]:
+  - generic [ref=e4] [box=14,14,752,611]:
+    - generic [ref=e5] [box=15,15,750,160]:
+      - generic [ref=e6] [box=35,39,710,54]
+      - paragraph [ref=e11] [box=35,127,710,27]: Piano management
+    - generic [ref=e13] [box=37,197,706,405]:
+      - generic [ref=e14] [box=37,197,706,124]
+      - generic [ref=e18] [box=37,345,706,257]
