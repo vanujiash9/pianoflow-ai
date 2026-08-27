@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from contextlib import asynccontextmanager
+import logging
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -16,6 +17,8 @@ from app.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
 from app.models.user import User
 from app.utils.auth import hash_password
 
+logger = logging.getLogger(__name__)
+
 settings = get_settings()
 
 
@@ -30,24 +33,29 @@ async def lifespan(_: FastAPI):
                     customer_columns = {column["name"] for column in inspector.get_columns("customers")}
                     if "deleted_at" not in customer_columns:
                         connection.execute(text("ALTER TABLE customers ADD COLUMN deleted_at DATETIME"))
-    with SessionLocal() as db:
-        user = db.scalar(select(User).where(User.username == settings.auth_seed_username))
-        if user:
-            user.password_hash = hash_password(settings.auth_seed_password)
-            user.role = settings.auth_seed_role
-            user.is_active = True
-            db.add(user)
-            db.commit()
-        else:
-            db.add(
-                User(
-                    username=settings.auth_seed_username,
-                    password_hash=hash_password(settings.auth_seed_password),
-                    role=settings.auth_seed_role,
-                    is_active=True,
+    db = None
+    try:
+        with SessionLocal() as db:
+            user = db.scalar(select(User).where(User.username == settings.auth_seed_username))
+            if user:
+                user.password_hash = hash_password(settings.auth_seed_password)
+                user.role = settings.auth_seed_role
+                user.is_active = True
+                db.add(user)
+            else:
+                db.add(
+                    User(
+                        username=settings.auth_seed_username,
+                        password_hash=hash_password(settings.auth_seed_password),
+                        role=settings.auth_seed_role,
+                        is_active=True,
+                    )
                 )
-            )
             db.commit()
+    except SQLAlchemyError:
+        if db is not None:
+            db.rollback()
+        logger.warning("Skipping auth seed during startup because the database is unavailable.")
     yield
 
 
@@ -87,6 +95,7 @@ def handle_business_rule(_: Request, exc: BusinessRuleError) -> JSONResponse:
 
 @app.exception_handler(SQLAlchemyError)
 def handle_database_error(_: Request, exc: SQLAlchemyError) -> JSONResponse:
+    logger.exception("Database error while handling request", exc_info=exc)
     if isinstance(exc, DBAPIError) and exc.connection_invalidated:
         return JSONResponse(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,

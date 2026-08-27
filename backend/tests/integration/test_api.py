@@ -49,6 +49,23 @@ def test_health(client):
     assert response.json() == {"status": "ok"}
 
 
+def test_health_db(client):
+    response = client.get("/api/v1/health/db")
+    assert response.status_code == 200
+    assert response.json() == {"status": "ok", "database": "ok"}
+
+
+def test_health_db_returns_503_on_database_error(client, monkeypatch):
+    def fail_connect():
+        raise OperationalError("SELECT 1", {}, Exception("db down"))
+
+    monkeypatch.setattr("app.api.routes.health.engine.connect", fail_connect)
+
+    response = client.get("/api/v1/health/db")
+    assert response.status_code == 503, response.text
+    assert response.json() == {"detail": "Cơ sở dữ liệu tạm thời không khả dụng"}
+
+
 def test_customer_create_and_search(client):
     customer = create_customer(client)
     response = client.get("/api/v1/customers", params={"search": "0909"})
@@ -325,13 +342,37 @@ def test_sale_sale_end_date_uses_calendar_months(client):
 
 
 def test_dashboard_uses_operational_metrics(client):
-    create_customer(client)
+    customer = create_customer(client)
     create_piano(client)
     response = client.get("/api/v1/dashboard")
     assert response.status_code == 200, response.text
     body = response.json()
     assert body["kpis"]["available_pianos"] == 1
     assert body["kpis"]["total_customers"] == 1
+    assert body["recent_customers"][0]["name"] == customer["name"]
+
+
+def test_dashboard_includes_leads_when_customer_exists(client):
+    customer = create_customer(client, phone="0909000999")
+    response = client.post(
+        "/api/v1/leads",
+        json={
+            "customer_id": customer["id"],
+            "budget_min": 1000000,
+            "budget_max": 2000000,
+            "interested_brand": "Kawai",
+            "interested_model": "K-300",
+            "status": "new",
+            "follow_up_date": date.today().isoformat(),
+            "notes": "Ưu tiên gọi lại",
+        },
+    )
+    assert response.status_code == 201, response.text
+
+    dashboard = client.get("/api/v1/dashboard")
+    assert dashboard.status_code == 200, dashboard.text
+    body = dashboard.json()
+    assert body["kpis"]["action_items"] >= 1
 
 
 def test_dashboard_returns_503_on_database_disconnect(client, monkeypatch):
