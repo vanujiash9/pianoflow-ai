@@ -25,12 +25,16 @@ export function printLabel(value: string | null | undefined): string {
   return value && value.trim() ? value : '—'
 }
 
-export function getReceiptCode(item: Warranty): string {
+interface WarrantyPrintItem {
+  customer_phone: string
+}
+
+export function getReceiptCode(item: WarrantyPrintItem): string {
   const phoneTail = item.customer_phone.replace(/\D/g, '').slice(-3).padStart(3, '0')
   return `BH-${phoneTail}`
 }
 
-export function getWarrantyPrintTitle(item: Warranty): string {
+export function getWarrantyPrintTitle(item: WarrantyPrintItem): string {
   const phoneTail = item.customer_phone.replace(/\D/g, '').slice(-3).padStart(3, '0')
   return `PhieuBaoHanh_${phoneTail}`
 }
