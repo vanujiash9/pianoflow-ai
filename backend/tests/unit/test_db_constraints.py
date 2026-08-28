@@ -71,11 +71,11 @@ def test_service_record_requires_valid_status(db_session):
         piano_id=piano.id,
         service_date=date(2026, 8, 10),
         service_type="Tuning",
-        status=ServiceStatus.SCHEDULED,
+        status=ServiceStatus.SCHEDULED.value,
     )
     db_session.add(record)
     db_session.commit()
-    assert record.status == ServiceStatus.SCHEDULED
+    assert record.status == ServiceStatus.SCHEDULED.value
 
 
 def test_customer_phone_unique_is_enforced(db_session):

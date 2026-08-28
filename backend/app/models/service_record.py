@@ -32,7 +32,10 @@ class ServiceRecord(TimestampMixin, Base):
     description: Mapped[str | None] = mapped_column(Text)
     next_service_date: Mapped[date | None] = mapped_column(Date, index=True)
     status: Mapped[ServiceStatus] = mapped_column(
-        Enum(ServiceStatus, native_enum=False), default=ServiceStatus.SCHEDULED, nullable=False, index=True
+        Enum(ServiceStatus, native_enum=False, values_callable=lambda enum_cls: [item.value for item in enum_cls]),
+        default=ServiceStatus.SCHEDULED,
+        nullable=False,
+        index=True,
     )
     notes: Mapped[str | None] = mapped_column(Text)
 

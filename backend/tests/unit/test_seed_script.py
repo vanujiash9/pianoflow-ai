@@ -6,22 +6,28 @@ import sys
 from pathlib import Path
 
 
-def test_demo_seed_script_runs_against_local_sqlite(db_session):
+def test_demo_seed_script_mentions_local_only_reset():
     seed_path = Path(__file__).resolve().parents[2] / "scripts" / "seed.py"
     source = seed_path.read_text(encoding="utf-8")
     assert "DEMO_SEED_ALLOW_RESET" in source
     assert "Seed completed:" in source
+    assert "sqlite" in source
+    assert "Seed chỉ chạy với SQLite local" in source
 
+
+def test_demo_seed_script_blocks_non_local_databases(tmp_path):
+    seed_path = Path(__file__).resolve().parents[2] / "scripts" / "seed.py"
     env = os.environ.copy()
     env["DEMO_SEED_ALLOW_RESET"] = "1"
+    env["DATABASE_URL"] = "postgresql+psycopg://example"
     env["PYTHONPATH"] = str(seed_path.parents[1])
     result = subprocess.run(
         [sys.executable, str(seed_path)],
-        cwd=seed_path.parents[1],
+        cwd=tmp_path,
         env=env,
         capture_output=True,
         text=True,
         check=False,
     )
-    assert result.returncode == 0, result.stderr
-    assert "Seed completed:" in result.stdout
+    assert result.returncode != 0
+    assert "Seed chỉ chạy với SQLite local" in result.stderr or "Seed chỉ chạy với SQLite local" in result.stdout
