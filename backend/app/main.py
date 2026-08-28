@@ -1,62 +1,20 @@
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
 import logging
 
 from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from sqlalchemy import inspect, select, text
 from sqlalchemy.exc import DBAPIError, SQLAlchemyError
 
 import app.models  # noqa: F401
 from app.api.router import api_router
 from app.core.config import get_settings
-from app.core.database import Base, SessionLocal, engine
 from app.core.exceptions import BusinessRuleError, ConflictError, NotFoundError
-from app.models.user import User
-from app.utils.auth import hash_password
 
 logger = logging.getLogger(__name__)
 
 settings = get_settings()
-
-
-@asynccontextmanager
-async def lifespan(_: FastAPI):
-    if settings.auto_create_tables:
-        Base.metadata.create_all(bind=engine, checkfirst=True)
-        if str(engine.url).startswith("sqlite"):
-            with engine.begin() as connection:
-                inspector = inspect(connection)
-                if "customers" in inspector.get_table_names():
-                    customer_columns = {column["name"] for column in inspector.get_columns("customers")}
-                    if "deleted_at" not in customer_columns:
-                        connection.execute(text("ALTER TABLE customers ADD COLUMN deleted_at DATETIME"))
-    db = None
-    try:
-        with SessionLocal() as db:
-            user = db.scalar(select(User).where(User.username == settings.auth_seed_username))
-            if user:
-                user.password_hash = hash_password(settings.auth_seed_password)
-                user.role = settings.auth_seed_role
-                user.is_active = True
-                db.add(user)
-            else:
-                db.add(
-                    User(
-                        username=settings.auth_seed_username,
-                        password_hash=hash_password(settings.auth_seed_password),
-                        role=settings.auth_seed_role,
-                        is_active=True,
-                    )
-                )
-            db.commit()
-    except SQLAlchemyError:
-        if db is not None:
-            db.rollback()
-        logger.warning("Skipping auth seed during startup because the database is unavailable.")
-    yield
 
 
 app = FastAPI(
@@ -66,7 +24,6 @@ app = FastAPI(
         "Piano shop customer, inventory, warranty, maintenance and AI assistant API. "
         "Use Swagger to test each endpoint."
     ),
-    lifespan=lifespan,
 )
 
 app.add_middleware(

@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from fastapi import HTTPException, Request, Response, status
 from sqlalchemy.orm import Session
 
+from app.core.config import get_settings
 from app.models.user import User
 from app.repositories.user_repository import UserRepository
 from app.schemas.auth import AuthResponse, AuthUser, LoginRequest, RegisterRequest
@@ -27,11 +28,12 @@ class AuthService:
         self.db.commit()
         self.db.refresh(user)
 
+        settings = get_settings()
         response.set_cookie(
             key=COOKIE_NAME,
             value=create_session_token(str(user.id)),
             httponly=True,
-            secure=False,
+            secure=settings.auth_cookie_secure,
             samesite="lax",
             max_age=60 * 60 * 12,
             path="/",

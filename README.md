@@ -53,6 +53,28 @@ backend/app/
 └── main.py
 ```
 
+Vercel backend entrypoint:
+
+```text
+backend/api/index.py -> app.main:app
+```
+
+Vercel config:
+
+```text
+backend/vercel.json
+```
+
+Frontend on Vercel talks to the backend through `VITE_API_URL`.
+
+```env
+VITE_API_URL=https://your-backend.example.com/api/v1
+```
+
+## 1. Run backend locally
+
+Requires Python 3.12+.
+
 ## 1. Run backend locally
 
 Requires Python 3.12+.
@@ -181,7 +203,27 @@ cd backend
 python -m scripts.seed
 ```
 
-> `seed.py` resets the configured database. Do **not** run it against a real shop database after you start storing production data.
+> `seed.py` is for local SQLite only. Do **not** run it against Supabase or any production database.
+> It resets whatever database `DATABASE_URL` points to, so keep it on a throwaway local `.env`.
+
+For Supabase-backed deploys, create data through the app or use migrations/fixtures designed for your production database.
+
+## 6. Test backend
+
+```bash
+cd backend
+pytest -q
+```
+
+Covered examples:
+
+- health endpoint
+- customer create/search
+- sale -> piano becomes sold
+- sale -> warranty is created automatically
+- dashboard operational metrics
+
+## 7. Swagger test order
 
 ## 6. Test backend
 
@@ -219,7 +261,7 @@ Example AI request:
 }
 ```
 
-## 8. CI/CD
+## 8. CI/CD and deploy
 
 `.github/workflows/ci.yml` runs:
 
@@ -228,17 +270,31 @@ Backend: install -> Ruff -> Pytest
 Frontend: install -> TypeScript/Vite build
 ```
 
-For deployment, a practical first setup is:
+Deploy split:
 
 ```text
 Frontend -> Vercel
-Backend  -> Railway / Render / VM container
+Backend  -> Render
 Database -> Supabase PostgreSQL
+```
+
+Frontend env on Vercel:
+
+```env
+VITE_API_URL=https://<backend-public-domain>/api/v1
+```
+
+Backend env on Render:
+
+```env
+CORS_ORIGINS=https://<your-vercel-app>.vercel.app
 ```
 
 Keep `LLM_API_KEY` and database credentials server-side only.
 
 ## 9. Next AI engineering extensions
+
+Future work, not part of the current MVP:
 
 Future work, not part of the current MVP:
 
