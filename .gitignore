@@ -44,3 +44,5 @@ pianoflow-flow-handover.docx
 .github/
 docs/
 .mcp.json
+.vercel
+.env*

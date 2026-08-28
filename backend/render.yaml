@@ -1,0 +1,47 @@
+services:
+  - type: web
+    name: pianoflow-api
+    env: docker
+    plan: starter
+    autoDeploy: true
+    envVars:
+      - key: ENVIRONMENT
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: API_V1_PREFIX
+        value: /api/v1
+      - key: CORS_ORIGINS
+        sync: false
+      - key: DATABASE_URL
+        sync: false
+      - key: AUTO_CREATE_TABLES
+        value: "false"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_PUBLISHABLE_KEY
+        sync: false
+      - key: SUPABASE_SECRET_KEY
+        sync: false
+      - key: SUPABASE_JWKS_URL
+        sync: false
+      - key: AUTH_SECRET
+        sync: false
+      - key: AUTH_SEED_USERNAME
+        sync: false
+      - key: AUTH_SEED_PASSWORD
+        sync: false
+      - key: AUTH_SEED_ROLE
+        value: admin
+      - key: AUTH_COOKIE_SECURE
+        value: "true"
+      - key: LLM_ENABLED
+        value: "false"
+      - key: LLM_BASE_URL
+        value: https://your-router.example.com/v1
+      - key: LLM_API_KEY
+        sync: false
+      - key: LLM_MODEL
+        sync: false
+      - key: LLM_TIMEOUT_SECONDS
+        value: "45"
