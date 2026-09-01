@@ -96,7 +96,7 @@ export function SalesPage() {
 
   return (
     <div className="sales-page">
-      <PageHeader title="Lịch sử bán" actions={null} />
+      <PageHeader title="Lịch sử bán" subtitle="Theo dõi giao dịch, tình trạng bảo hành và lịch sử bán hàng." />
       {error && <div className="error-banner">{error}</div>}
       <section className="sales-summary">
         <div className="sales-summary-card"><span className="sales-summary-icon tone-indigo"><ShoppingBag size={21} strokeWidth={1.8} /></span><div><span className="sales-summary-label">Giao dịch đã lưu</span><strong>{sales.length}</strong></div></div>

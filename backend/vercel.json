@@ -1,14 +1,19 @@
 {
-  "buildCommand": "pip install -e .",
-  "functions": {
-    "api/index.py": {
-      "runtime": "python3.12"
+  "version": 2,
+  "services": {
+    "pianoflow-api": {
+      "root": ".",
+      "runtime": "python",
+      "entrypoint": "api/index.py"
     }
   },
   "rewrites": [
     {
-      "source": "/api/(.*)",
-      "destination": "/api/index.py"
+      "source": "/(.*)",
+      "destination": {
+        "type": "service",
+        "service": "pianoflow-api"
+      }
     }
   ]
 }

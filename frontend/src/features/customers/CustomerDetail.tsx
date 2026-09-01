@@ -4,24 +4,35 @@ import {
   MapPin,
   Piano as PianoIcon,
   Phone,
+  Plus,
   ShieldCheck,
   ShoppingBag,
   UserRound,
   Wrench,
 } from 'lucide-react'
+import {
+  useMemo,
+  useState,
+} from 'react'
 
 import { StatusBadge } from '../../components/ui/StatusBadge'
-import { fmtDate } from '../../lib/api'
-import type { Customer, CustomerProfile } from '../../types'
+import { api, fmtDate } from '../../lib/api'
+import type {
+  Customer,
+  CustomerMaintenanceFormValue,
+  CustomerProfile,
+  ServiceStatus,
+} from '../../types'
 
 import './customer-detail.css'
 
-interface CustomerDetailProps {
+export interface CustomerDetailProps {
   customer?: Customer
   profile?: CustomerProfile | null
   loading?: boolean
   error?: string
   onBack?: () => void
+  onSaved?: () => void
 }
 
 const EMPTY_CUSTOMER = {
@@ -33,6 +44,10 @@ const EMPTY_CUSTOMER = {
   created_at: '',
   updated_at: '',
 } satisfies Customer
+
+type MaintenanceType = 'Bảo trì' | 'Bảo hành' | 'Bổ sung'
+
+const MAINTENANCE_TYPES: MaintenanceType[] = ['Bảo trì', 'Bảo hành', 'Bổ sung']
 
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -56,18 +71,101 @@ function isActiveWarranty(status?: string | null) {
   )
 }
 
+function getToday() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function getLatestPurchase(profile: CustomerProfile | null) {
+  const purchases = profile?.purchases ?? []
+  if (purchases.length === 0) return null
+
+  return [...purchases].sort(
+    (a, b) => new Date(b.sale_date).getTime() - new Date(a.sale_date).getTime(),
+  )[0]
+}
+
+function getNextServiceStatus(serviceType: MaintenanceType): ServiceStatus {
+  switch (serviceType) {
+    case 'Bảo hành':
+      return 'completed'
+    case 'Bổ sung':
+      return 'in_progress'
+    case 'Bảo trì':
+    default:
+      return 'completed'
+  }
+}
+
 export function CustomerDetail({
   customer = EMPTY_CUSTOMER,
   profile = null,
   loading = false,
   error = '',
   onBack = () => {},
+  onSaved = () => {},
 }: CustomerDetailProps) {
   const purchases = profile?.purchases ?? []
   const services = profile?.services ?? []
   const activeWarrantyCount = purchases.filter((item) =>
     isActiveWarranty(item.warranty_status),
   ).length
+
+  const latestPurchase = useMemo(() => getLatestPurchase(profile), [profile])
+
+  const [form, setForm] = useState<CustomerMaintenanceFormValue>({
+    service_date: getToday(),
+    notes: '',
+  })
+  const [serviceType, setServiceType] = useState<MaintenanceType>('Bảo trì')
+  const [saving, setSaving] = useState(false)
+  const [saveError, setSaveError] = useState('')
+  const [saveSuccess, setSaveSuccess] = useState('')
+
+  const submitMaintenance = async (event: { preventDefault: () => void }) => {
+    event.preventDefault()
+    setSaveError('')
+    setSaveSuccess('')
+
+    if (!customer.id) {
+      setSaveError('Không thể lưu lịch sử chăm sóc.')
+      return
+    }
+
+    if (!latestPurchase?.piano_id) {
+      setSaveError('Khách hàng này chưa có đàn để ghi nhận chăm sóc.')
+      return
+    }
+
+    try {
+      setSaving(true)
+
+      await api('/services', {
+        method: 'POST',
+        body: JSON.stringify({
+          customer_id: customer.id,
+          piano_id: latestPurchase.piano_id,
+          service_date: form.service_date,
+          service_type: serviceType,
+          status: getNextServiceStatus(serviceType),
+          notes: form.notes.trim() || null,
+          description: null,
+          next_service_date: null,
+        }),
+      })
+
+      setForm({
+        service_date: getToday(),
+        notes: '',
+      })
+      setServiceType('Bảo trì')
+      setSaveSuccess('Đã lưu lịch sử chăm sóc mới.')
+      onSaved()
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Không thể lưu lịch sử chăm sóc.')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   return (
     <main className="customer-detail-page">
@@ -83,6 +181,8 @@ export function CustomerDetail({
       </header>
 
       {error && <div className="error-banner">{error}</div>}
+      {saveError && <div className="error-banner">{saveError}</div>}
+      {saveSuccess && <div className="success-banner">{saveSuccess}</div>}
 
       {loading ? (
         <section className="customer-detail-loading" aria-label="Đang tải">
@@ -150,7 +250,7 @@ export function CustomerDetail({
                   <Wrench size={17} />
                 </span>
                 <div>
-                  <span>Đã bảo trì</span>
+                  <span>Đã chăm sóc</span>
                   <strong>{services.length}</strong>
                 </div>
               </div>
@@ -242,8 +342,7 @@ export function CustomerDetail({
                               Mua ngày <strong>{fmtDate(item.sale_date)}</strong>
                             </span>
                             <span>
-                              Bảo hành đến {' '}
-                              <strong>{fmtDate(item.warranty_end_date)}</strong>
+                              Bảo hành đến <strong>{fmtDate(item.warranty_end_date)}</strong>
                             </span>
                           </div>
                         </div>
@@ -261,16 +360,71 @@ export function CustomerDetail({
                     </span>
 
                     <div>
-                      <h3>Bảo trì / sửa chữa hậu mãi</h3>
+                      <h3>Ghi lịch sử chăm sóc</h3>
                       <p>{services.length} lần</p>
                     </div>
                   </div>
                 </header>
 
+                <form className="customer-maintenance-form" onSubmit={submitMaintenance}>
+                  <div className="customer-maintenance-form-row">
+                    <label>
+                      <span>Ngày</span>
+                      <input
+                        type="date"
+                        value={form.service_date}
+                        onChange={(event) =>
+                          setForm((current) => ({
+                            ...current,
+                            service_date: event.target.value,
+                          }))
+                        }
+                        required
+                      />
+                    </label>
+
+                    <label>
+                      <span>Loại</span>
+                      <select
+                        value={serviceType}
+                        onChange={(event) =>
+                          setServiceType(event.target.value as MaintenanceType)
+                        }
+                      >
+                        {MAINTENANCE_TYPES.map((option) => (
+                          <option key={option} value={option}>
+                            {option}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                  </div>
+
+                  <label className="customer-maintenance-note-field">
+                    <span>Ghi chú</span>
+                    <textarea
+                      value={form.notes}
+                      onChange={(event) =>
+                        setForm((current) => ({
+                          ...current,
+                          notes: event.target.value,
+                        }))
+                      }
+                      rows={4}
+                      placeholder="Ví dụ: vệ sinh bàn phím, kiểm tra pedal, chỉnh dây..."
+                    />
+                  </label>
+
+                  <button type="submit" className="customer-maintenance-submit" disabled={saving}>
+                    <Plus size={16} />
+                    {saving ? 'Đang lưu...' : 'Lưu lịch sử'}
+                  </button>
+                </form>
+
                 {services.length === 0 ? (
                   <div className="customer-empty-block compact">
                     <Wrench size={22} />
-                    <strong>Chưa có lịch sử bảo trì</strong>
+                    <strong>Chưa có lịch sử chăm sóc</strong>
                     <span>Các lần chăm sóc sau bán sẽ hiển thị tại đây.</span>
                   </div>
                 ) : (
@@ -287,6 +441,9 @@ export function CustomerDetail({
                         <div className="customer-service-main">
                           <strong>{item.service_type}</strong>
                           <span>{item.piano_name}</span>
+                          {item.notes && (
+                            <small className="customer-service-notes">{item.notes}</small>
+                          )}
                         </div>
 
                         <div className="customer-service-date">

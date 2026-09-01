@@ -1,16 +1,9 @@
 import {
-  ArrowLeft,
-  CheckCircle2,
   ChevronRight,
   Clock3,
   ListFilter,
-  MapPin,
-  Piano as PianoIcon,
-  Phone,
   Search,
   ShieldCheck,
-  ShoppingBag,
-  UserRound,
   Wrench,
 } from 'lucide-react'
 import {
@@ -37,6 +30,8 @@ import type {
   CustomerProfile,
 } from '../../types'
 
+import { CustomerDetail, CustomerNotFound } from './CustomerDetail'
+
 import './customers.css'
 
 type CustomerFilter = 'all' | 'warranty' | 'purchased' | 'maintenance'
@@ -59,10 +54,7 @@ function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean)
 
   if (parts.length === 0) return '?'
-
-  if (parts.length === 1) {
-    return parts[0].slice(0, 2).toUpperCase()
-  }
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
 
   return `${parts[parts.length - 2][0]}${parts[parts.length - 1][0]}`.toUpperCase()
 }
@@ -73,252 +65,6 @@ function getLatestPurchase(profile: CustomerProfile | null) {
   return [...profile.purchases].sort(
     (a, b) => new Date(b.sale_date).getTime() - new Date(a.sale_date).getTime(),
   )[0]
-}
-
-function isActiveWarranty(status?: string | null) {
-  if (!status) return false
-
-  const normalized = status.toLowerCase()
-  return (
-    normalized.includes('active') ||
-    normalized.includes('expiring') ||
-    normalized.includes('còn') ||
-    normalized.includes('sắp')
-  )
-}
-
-interface CustomerDetailProps {
-  customer: Customer
-  profile: CustomerProfile | null
-  loading: boolean
-  error: string
-  onBack: () => void
-}
-
-function CustomerDetail({
-  customer,
-  profile,
-  loading,
-  error,
-  onBack,
-}: CustomerDetailProps) {
-  const purchases = profile?.purchases ?? []
-  const services = profile?.services ?? []
-
-  const activeWarrantyCount = purchases.filter((item) => isActiveWarranty(item.warranty_status)).length
-
-  return (
-    <div className="customer-detail-page">
-      <div className="customer-detail-header">
-        <div>
-          <button type="button" className="customer-back-button" onClick={onBack}>
-            <ArrowLeft size={15} />
-            Quay lại danh sách
-          </button>
-
-          <h1>Chi tiết khách hàng</h1>
-        </div>
-      </div>
-
-      {error && <div className="error-banner">{error}</div>}
-
-      <section className="customer-detail-hero">
-        <div className="customer-detail-person">
-          <div className="customer-detail-avatar">{getInitials(customer.name)}</div>
-
-          <div className="customer-detail-person-copy">
-            <div className="customer-detail-name-row">
-              <h2>{customer.name}</h2>
-              <span className="customer-type-badge">Khách hàng</span>
-            </div>
-
-            <div className="customer-detail-contact">
-              <span>
-                <Phone size={14} />
-                {customer.phone}
-              </span>
-              <span>
-                <MapPin size={14} />
-                {customer.address || 'Chưa có địa chỉ'}
-              </span>
-            </div>
-
-            {customer.notes && <div className="customer-detail-note">{customer.notes}</div>}
-          </div>
-        </div>
-
-        <div className="customer-detail-stats">
-          <div className="customer-stat-card">
-            <span className="customer-stat-icon blue"><ShoppingBag size={19} /></span>
-            <div>
-              <span>Đã mua đàn</span>
-              <strong>{purchases.length}</strong>
-            </div>
-          </div>
-
-          <div className="customer-stat-card">
-            <span className="customer-stat-icon green"><ShieldCheck size={19} /></span>
-            <div>
-              <span>Còn bảo hành</span>
-              <strong>{activeWarrantyCount}</strong>
-            </div>
-          </div>
-
-          <div className="customer-stat-card">
-            <span className="customer-stat-icon violet"><Wrench size={19} /></span>
-            <div>
-              <span>Đã bảo trì</span>
-              <strong>{services.length}</strong>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {loading ? (
-        <section className="customer-detail-loading">
-          <div />
-          <div />
-          <div />
-        </section>
-      ) : (
-        <section className="customer-detail-content">
-          <aside className="customer-info-card">
-            <div className="customer-section-heading">
-              <UserRound size={17} />
-              <h3>Thông tin khách hàng</h3>
-            </div>
-
-            <dl className="customer-info-list">
-              <div>
-                <dt>Họ tên</dt>
-                <dd>{customer.name}</dd>
-              </div>
-              <div>
-                <dt>Số điện thoại</dt>
-                <dd>{customer.phone}</dd>
-              </div>
-              <div>
-                <dt>Địa chỉ</dt>
-                <dd>{customer.address || '—'}</dd>
-              </div>
-              <div>
-                <dt>Ghi chú</dt>
-                <dd>{customer.notes || '—'}</dd>
-              </div>
-            </dl>
-          </aside>
-
-          <div className="customer-activity">
-            <section className="customer-activity-card">
-              <header className="customer-activity-header">
-                <div>
-                  <span className="customer-section-icon green"><PianoIcon size={17} /></span>
-                  <h3>Giao dịch đã ghi nhận</h3>
-                </div>
-                <span>{purchases.length} cây</span>
-              </header>
-
-              {purchases.length === 0 ? (
-                <div className="customer-empty-block">
-                  <PianoIcon size={23} />
-                  <strong>Chưa có giao dịch</strong>
-                  <span>Chưa phát sinh đơn mua hoặc phiếu liên quan.</span>
-                </div>
-              ) : (
-                <div className="customer-purchase-list">
-                  {purchases.map((item) => (
-                    <article className="customer-purchase-card" key={item.piano_id}>
-                      <div className="customer-piano-icon">
-                        <PianoIcon size={24} strokeWidth={1.5} />
-                      </div>
-
-                      <div className="customer-purchase-main">
-                        <div className="customer-purchase-title">
-                          <div>
-                            <h4>{item.piano_name}</h4>
-                            <span className="mono">Serial: {item.serial_number || '—'}</span>
-                          </div>
-
-                          {item.warranty_status && <StatusBadge value={item.warranty_status} />}
-                        </div>
-
-                        <div className="customer-purchase-meta">
-                          <span>
-                            Mua ngày
-                            <strong>{fmtDate(item.sale_date)}</strong>
-                          </span>
-                          <span>
-                            Bảo hành đến
-                            <strong>{fmtDate(item.warranty_end_date)}</strong>
-                          </span>
-                        </div>
-                      </div>
-                    </article>
-                  ))}
-                </div>
-              )}
-            </section>
-
-            <section className="customer-activity-card">
-              <header className="customer-activity-header">
-                <div>
-                  <span className="customer-section-icon violet"><Wrench size={16} /></span>
-                  <h3>Bảo trì / sửa chữa hậu mãi</h3>
-                </div>
-                <span>{services.length} lần</span>
-              </header>
-
-              {services.length === 0 ? (
-                <div className="customer-empty-block compact">
-                  <Wrench size={22} />
-                  <strong>Chưa có lịch sử bảo trì</strong>
-                  <span>Các lần chăm sóc sau bán sẽ hiển thị tại đây.</span>
-                </div>
-              ) : (
-                <div className="customer-service-list">
-                  {services.map((item, index) => (
-                    <article className="customer-service-row" key={`${item.piano_name}-${item.service_date}-${index}`}>
-                      <span className="customer-service-icon"><CheckCircle2 size={16} /></span>
-                      <div className="customer-service-main">
-                        <strong>{item.service_type}</strong>
-                        <span>{item.piano_name}</span>
-                      </div>
-                      <div className="customer-service-date">
-                        <span>{fmtDate(item.service_date)}</span>
-                        {item.next_service_date && <small>Lần tới: {fmtDate(item.next_service_date)}</small>}
-                      </div>
-                      <StatusBadge value={item.status} />
-                    </article>
-                  ))}
-                </div>
-              )}
-            </section>
-          </div>
-        </section>
-      )}
-    </div>
-  )
-}
-
-function CustomerNotFound({ onBack }: { onBack: () => void }) {
-  return (
-    <div className="customer-detail-page">
-      <div className="customer-detail-header">
-        <div>
-          <button type="button" className="customer-back-button" onClick={onBack}>
-            <ArrowLeft size={15} />
-            Quay lại danh sách
-          </button>
-          <h1>Chi tiết khách hàng</h1>
-        </div>
-      </div>
-
-      <section className="customer-empty-block customer-detail-not-found">
-        <strong>Không tìm thấy khách hàng</strong>
-        <span>Khách hàng này không tồn tại hoặc đã bị xoá.</span>
-      </section>
-    </div>
-  )
 }
 
 export function CustomersPage() {
@@ -473,6 +219,13 @@ export function CustomersPage() {
         loading={detailLoading}
         error={detailError}
         onBack={() => navigate('/customers')}
+        onSaved={() => {
+          void load(search)
+          void api<CustomerProfile>(`/customers/${customerId}/profile`).then((profile) => {
+            setDetailCustomer(profile.customer)
+            setDetailProfile(profile)
+          })
+        }}
       />
     ) : detailLoading ? (
       <div className="customer-detail-page">
@@ -483,10 +236,8 @@ export function CustomersPage() {
               className="customer-back-button"
               onClick={() => navigate('/customers')}
             >
-              <ArrowLeft size={15} />
               Quay lại danh sách
             </button>
-
             <h1>Chi tiết khách hàng</h1>
             <p className="customer-detail-intro">Khối này chỉ tổng hợp dữ liệu đã phát sinh từ bán hàng và hậu mãi.</p>
           </div>
@@ -621,7 +372,6 @@ export function CustomersPage() {
           </div>
         )}
       </section>
-
     </div>
   )
 }

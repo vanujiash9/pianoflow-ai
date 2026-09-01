@@ -43,3 +43,10 @@ class SaleRepository:
         self.db.add(entity)
         self.db.flush()
         return entity
+
+    def update(self, entity: Sale, data) -> Sale:
+        for key, value in data.model_dump(exclude_unset=True).items():
+            setattr(entity, key, value)
+        self.db.commit()
+        self.db.refresh(entity)
+        return entity

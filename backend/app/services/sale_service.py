@@ -15,7 +15,7 @@ from app.models.warranty import Warranty
 from app.repositories.piano_repository import PianoRepository
 from app.repositories.sale_repository import SaleRepository
 from app.schemas.customer import CustomerInput
-from app.schemas.sale import SaleCreate, SaleDetail
+from app.schemas.sale import SaleCreate, SaleDetail, SaleUpdate
 from app.services.customer_service import CustomerService
 from app.services.lead_service import LeadService
 
@@ -38,6 +38,13 @@ class SaleService:
 
     def list(self) -> list[SaleDetail]:
         return [self._to_detail(item) for item in self.sales.list()]
+
+    def update(self, sale_id: uuid.UUID, data: SaleUpdate) -> SaleDetail:
+        entity = self.sales.get(sale_id)
+        if not entity:
+            raise NotFoundError("Không tìm thấy giao dịch")
+        updated = self.sales.update(entity, data)
+        return self._to_detail(updated)
 
     def create(self, data: SaleCreate) -> SaleDetail:
         customer = self._resolve_customer(data.customer_id, data.customer)

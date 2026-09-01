@@ -43,7 +43,7 @@ class CustomerService:
             raise NotFoundError("Không tìm thấy khách hàng")
         today = date.today()
         purchases = []
-        for sale in self.sales.list_by_customer(customer_id):
+        for index, sale in enumerate(self.sales.list_by_customer(customer_id), start=1):
             if not sale.warranty:
                 warranty_status = None
             elif sale.warranty.end_date < today:
@@ -62,10 +62,13 @@ class CustomerService:
                         sale.warranty.end_date.isoformat() if sale.warranty else None
                     ),
                     warranty_status=warranty_status,
+                    notes=sale.warranty.notes if sale.warranty else sale.notes,
+                    sequence_number=index,
                 )
             )
         service_items = [
             CustomerServiceSummary(
+                id=item.id,
                 piano_name=f"{item.piano.brand} {item.piano.model}",
                 service_date=item.service_date.isoformat(),
                 service_type=item.service_type,
@@ -73,8 +76,10 @@ class CustomerService:
                     item.next_service_date.isoformat() if item.next_service_date else None
                 ),
                 status=item.status.value,
+                notes=item.notes,
+                sequence_number=index,
             )
-            for item in self.services.list_by_customer(customer_id)
+            for index, item in enumerate(self.services.list_by_customer(customer_id), start=1)
         ]
         return CustomerProfile(
             customer=CustomerRead.model_validate(entity),

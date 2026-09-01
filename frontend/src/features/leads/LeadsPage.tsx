@@ -276,7 +276,7 @@ export function LeadsPage() {
 
   return (
     <div className="leads-page">
-      <PageHeader title="Khách đang quan tâm" actions={<button type="button" className="primary-button leads-add-button" onClick={openDrawer}><Plus size={17} />Thêm khách quan tâm</button>} />
+      <PageHeader title="Khách đang quan tâm" subtitle="Theo dõi khách chưa chốt mua để tư vấn lại đúng lúc." actions={<button type="button" className="primary-button leads-add-button" onClick={openDrawer}><Plus size={17} />Thêm khách quan tâm</button>} />
 
       {error && <div className="error-banner">{error}</div>}
 

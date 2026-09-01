@@ -51,7 +51,7 @@ export interface Sale {
   customer_phone: string
   piano_id: string
   piano_name: string
-  serial_number: string
+  serial_number: string | null
   sale_date: string
   warranty_end_date: string | null
   notes: string | null
@@ -66,7 +66,7 @@ export interface Warranty {
   customer_address: string | null
   piano_id: string
   piano_name: string
-  serial_number: string
+  serial_number: string | null
   start_date: string
   end_date: string
   status: 'active' | 'expiring' | 'expired' | 'voided'
@@ -79,7 +79,7 @@ export interface ServiceRecord {
   customer_name: string
   customer_phone: string
   piano_name: string
-  serial_number: string
+  serial_number: string | null
   service_date: string
   service_type: string
   description: string | null
@@ -145,21 +145,43 @@ export interface DashboardData {
   }[]
 }
 
+export interface CustomerPurchaseSummary {
+  piano_id: string
+  piano_name: string
+  serial_number: string | null
+  sale_date: string
+  warranty_end_date: string | null
+  warranty_status: string | null
+  notes: string | null
+}
+
+export interface CustomerServiceSummary {
+  id: string
+  piano_name: string
+  service_date: string
+  service_type: string
+  next_service_date: string | null
+  status: ServiceStatus
+  notes: string | null
+  sequence_number: number | null
+}
+
 export interface CustomerProfile {
   customer: Customer
-  purchases: {
-    piano_id: string
-    piano_name: string
-    serial_number: string
-    sale_date: string
-    warranty_end_date: string | null
-    warranty_status: string | null
-  }[]
-  services: {
-    piano_name: string
-    service_date: string
-    service_type: string
-    next_service_date: string | null
-    status: string
-  }[]
+  purchases: CustomerPurchaseSummary[]
+  services: CustomerServiceSummary[]
+}
+
+export interface CustomerMaintenanceEntry {
+  id: string
+  service_date: string
+  service_type: string
+  notes: string | null
+  next_service_date: string | null
+  status: ServiceStatus
+}
+
+export interface CustomerMaintenanceFormValue {
+  service_date: string
+  notes: string
 }

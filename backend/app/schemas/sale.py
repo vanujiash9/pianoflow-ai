@@ -39,6 +39,10 @@ class SaleRead(ORMModel):
     created_at: datetime
 
 
+class SaleUpdate(StrictModel):
+    notes: str | None = None
+
+
 class SaleDetail(StrictModel):
     id: uuid.UUID
     customer_id: uuid.UUID

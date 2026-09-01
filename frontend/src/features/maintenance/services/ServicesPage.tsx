@@ -212,6 +212,7 @@ export function ServicesPage() {
         item.serial_number,
         item.service_type,
         item.description,
+        item.notes,
       ]
         .filter(Boolean)
         .join(' ')
@@ -588,6 +589,11 @@ export function ServicesPage() {
                                 }
                               </span>
                             )}
+                            {item.notes && (
+                              <small className="service-note">
+                                {item.notes}
+                              </small>
+                            )}
                           </div>
                         </td>
 
@@ -744,6 +750,13 @@ export function ServicesPage() {
                         </strong>
                       </div>
                     </div>
+
+                    {item.notes && (
+                      <div className="service-mobile-note">
+                        <span>Ghi chú</span>
+                        <p>{item.notes}</p>
+                      </div>
+                    )}
                   </article>
                 ),
               )}

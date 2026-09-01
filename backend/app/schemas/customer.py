@@ -153,14 +153,28 @@ class CustomerPurchaseSummary(StrictModel):
     sale_date: str
     warranty_end_date: str | None
     warranty_status: str | None
+    notes: str | None = None
+    sequence_number: int | None = None
 
 
 class CustomerServiceSummary(StrictModel):
+    id: uuid.UUID
     piano_name: str
     service_date: str
     service_type: str
     next_service_date: str | None
     status: str
+    notes: str | None = None
+    sequence_number: int | None = None
+
+
+class CustomerProfile(StrictModel):
+    customer: CustomerRead
+    purchases: list[CustomerPurchaseSummary]
+    services: list[CustomerServiceSummary]
+
+
+# Legacy duplicate removed
 
 
 class CustomerProfile(StrictModel):
