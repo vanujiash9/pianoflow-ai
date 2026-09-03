@@ -4,8 +4,7 @@ import logoImage from '../../../img/logo.jpg'
 
 import { buildWarrantyNotes } from './lib/api'
 import type { WarrantyPrintPayload } from './lib/warranty-print-session'
-import { SHOP_ADDRESS, SHOP_PHONES, SHOP_TITLE, formatPrintDate, getReceiptCode, printLabel } from './lib/warranty-print'
-
+import { SHOP_ADDRESS, SHOP_PHONES, SHOP_TITLE, formatPrintDate, printLabel } from './lib/warranty-print'
 interface WarrantyPrintDocumentProps {
   payload: WarrantyPrintPayload
 }
@@ -40,8 +39,8 @@ export const WarrantyPrintDocument = forwardRef<HTMLDivElement, WarrantyPrintDoc
           </div>
         </div>
         <div className="warranty-print-code">
-          <span>Mã phiếu:</span>
-          <strong>{getReceiptCode({ receipt_id: payload.receiptId })}</strong>
+          <span>Mã bảo hành:</span>
+          <strong>{payload.warrantyCode}</strong>
         </div>
       </div>
 

@@ -9,7 +9,7 @@ import { ApiError } from '../../lib/api'
 import { createWarrantySale } from './lib/api'
 import { WarrantyPrintDocument } from './WarrantyPrintDocument'
 import { type WarrantyPrintPayload, createWarrantyPrintPayload, readWarrantyPrintPayload, saveWarrantyPrintPayload } from './lib/warranty-print-session'
-import { formatPrintDate, getWarrantyPrintTitle } from './lib/warranty-print'
+import { assertWarrantyReceiptId, createWarrantyCode, formatPrintDate, getWarrantyPrintTitle } from './lib/warranty-print'
 
 import './warranties-print.css'
 
@@ -60,6 +60,11 @@ function hasDigit(value: string) {
 
 function isTenDigitPhone(value: string) {
   return /^\d{10}$/.test(value)
+}
+
+function isMobileDevice() {
+  if (typeof navigator === 'undefined') return false
+  return /Android|iPhone|iPad|iPod|Mobi/i.test(navigator.userAgent)
 }
 
 async function waitForWarrantyAssets(): Promise<void> {
@@ -135,9 +140,23 @@ export function WarrantiesPrintPage() {
     }
   }, [])
 
-  const previewPayload = savedPrintPayload ?? emptyPrintPayload
-  const showPrintHint = !savedPrintPayload
-  const canReprint = Boolean(savedPrintPayload)
+  const previewPayload = useMemo<WarrantyPrintPayload>(
+    () => ({
+      customerName: form.customerName,
+      customerPhone: form.customerPhone,
+      customerAddress: form.customerAddress,
+      pianoName: form.pianoName,
+      serialNumber: form.serialNumber.trim() || null,
+      startDate: form.startDate,
+      endDate: form.endDate,
+      notes: form.notes,
+      receiptId: savedReceipt || '—',
+      createdAt: new Date().toISOString(),
+    }),
+    [form.customerAddress, form.customerName, form.customerPhone, form.endDate, form.notes, form.pianoName, form.serialNumber, form.startDate, savedReceipt],
+  )
+  const showPrintHint = !savedReceipt
+  const canReprint = Boolean(savedReceipt)
 
   const warrantyMonths = useMemo(() => {
     if (!form.startDate || !form.endDate) return 1
@@ -226,15 +245,35 @@ export function WarrantiesPrintPage() {
         warranty_months: warrantyMonths,
         notes: form.notes.trim() || null,
       })
-      const payload = createWarrantyPrintPayload(result.id, form)
+      const receiptId = assertWarrantyReceiptId(result.id)
+      const warrantyCode = createWarrantyCode(form.customerPhone, receiptId)
+      const payload = createWarrantyPrintPayload(receiptId, warrantyCode, form)
       saveWarrantyPrintPayload(payload)
-      setSavedReceipt(result.id)
+      setSavedReceipt(receiptId)
       setSavedPrintPayload(payload)
       setForm(initialForm)
       setErrors({})
-      document.title = getWarrantyPrintTitle({ receipt_id: result.id })
+      document.title = getWarrantyPrintTitle({ receipt_id: receiptId })
       await downloadWarrantyPdf(payload)
-      window.print()
+      if (!isMobileDevice()) {
+        window.print()
+      }
+      setError('')
+      setForm(initialForm)
+      setErrors({})
+      saveWarrantyPrintPayload({
+        customerName: '',
+        customerPhone: '',
+        customerAddress: '',
+        pianoName: '',
+        serialNumber: null,
+        startDate: '',
+        endDate: '',
+        notes: '',
+        receiptId: '—',
+        warrantyCode: '—',
+        createdAt: new Date().toISOString(),
+      })
     } catch (err) {
       if (err instanceof ApiError) {
         setError(err.message)

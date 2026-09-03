@@ -25,15 +25,52 @@ export function printLabel(value: string | null | undefined): string {
   return value && value.trim() ? value : '—'
 }
 
+export function createWarrantyCode(phone: string, databaseId: string): string {
+  const normalizedPhone = phone.replace(/\D+/g, '')
+  if (normalizedPhone.length < 3) {
+    throw new Error('Số điện thoại không hợp lệ.')
+  }
+
+  const phoneSuffix = normalizedPhone.slice(-3)
+  const normalizedId = databaseId.replace(/\s+/g, '').toUpperCase()
+  if (!normalizedId || normalizedId === '—') {
+    throw new Error('Mã bảo hành không hợp lệ.')
+  }
+
+  const idSuffix = normalizedId.slice(-6)
+  if (!idSuffix) {
+    throw new Error('Mã bảo hành không hợp lệ.')
+  }
+
+  return `BH-${phoneSuffix}-${idSuffix}`
+}
+
 interface WarrantyPrintItem {
   receipt_id: string
 }
 
 export function getReceiptCode(item: WarrantyPrintItem): string {
-  const suffix = item.receipt_id.replace(/\s+/g, '').slice(-6).toUpperCase()
-  return suffix ? `BH-${suffix}` : 'BH-000000'
+  const normalized = item.receipt_id.replace(/\s+/g, '').toUpperCase()
+  if (!normalized || normalized === '—') {
+    throw new Error('Mã bảo hành không hợp lệ.')
+  }
+
+  const suffix = normalized.slice(-6)
+  if (!suffix) {
+    throw new Error('Mã bảo hành không hợp lệ.')
+  }
+
+  return `BH-${suffix}`
 }
 
+export function assertWarrantyReceiptId(receiptId: string | null | undefined): string {
+  const normalized = receiptId?.replace(/\s+/g, '').toUpperCase() ?? ''
+  if (!normalized || normalized === '—') {
+    throw new Error('Mã bảo hành không được để trống.')
+  }
+
+  return normalized
+}
 export function getWarrantyPrintTitle(item: WarrantyPrintItem): string {
   const suffix = item.receipt_id.replace(/\s+/g, '').slice(-6).toUpperCase()
   return suffix ? `PhieuBaoHanh_${suffix}` : 'PhieuBaoHanh'

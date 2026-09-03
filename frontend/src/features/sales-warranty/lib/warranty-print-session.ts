@@ -10,11 +10,13 @@ export interface WarrantyPrintPayload {
   endDate: string
   notes: string
   receiptId: string
+  warrantyCode: string
   createdAt: string
 }
 
 export function createWarrantyPrintPayload(
   receiptId: string,
+  warrantyCode: string,
   form: {
     customerName: string
     customerPhone: string
@@ -31,11 +33,12 @@ export function createWarrantyPrintPayload(
     customerPhone: form.customerPhone.trim(),
     customerAddress: form.customerAddress.trim(),
     pianoName: form.pianoName.trim(),
-    serialNumber: form.serialNumber.trim(),
+    serialNumber: form.serialNumber.trim() || null,
     startDate: form.startDate,
     endDate: form.endDate,
     notes: form.notes.trim(),
     receiptId,
+    warrantyCode,
     createdAt: new Date().toISOString(),
   }
 }
