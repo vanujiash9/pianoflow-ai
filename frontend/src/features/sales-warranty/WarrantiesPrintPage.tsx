@@ -1,19 +1,14 @@
-import { type FormEvent, useMemo, useState } from 'react'
-
-import logoImage from '../../../img/logo.jpg'
+import { type FormEvent, useEffect, useMemo, useState } from 'react'
 
 import { PageHeader } from '../../components/ui/PageHeader'
 import { ApiError } from '../../lib/api'
 
-import { buildWarrantyNotes, createWarrantySale } from './lib/api'
-import { formatPrintDate, SHOP_ADDRESS, SHOP_PHONES, SHOP_TITLE, getReceiptCode, getWarrantyPrintTitle, printLabel } from './lib/warranty-print'
+import { createWarrantySale } from './lib/api'
+import { WarrantyPrintDocument } from './WarrantyPrintDocument'
+import { type WarrantyPrintPayload, createWarrantyPrintPayload, readWarrantyPrintPayload, saveWarrantyPrintPayload } from './lib/warranty-print-session'
+import { formatPrintDate, getWarrantyPrintTitle } from './lib/warranty-print'
 
 import './warranties-print.css'
-
-function fmtDate(value: string) {
-  if (!value) return ' '
-  return new Date(`${value}T00:00:00`).toLocaleDateString('vi-VN')
-}
 
 type WarrantyFormState = {
   customerName: string
@@ -27,6 +22,19 @@ type WarrantyFormState = {
 }
 
 type WarrantyFormErrors = Partial<Record<keyof WarrantyFormState, string>>
+
+const emptyPrintPayload: WarrantyPrintPayload = {
+  customerName: '',
+  customerPhone: '',
+  customerAddress: '',
+  pianoName: '',
+  serialNumber: '',
+  startDate: '',
+  endDate: '',
+  notes: '',
+  receiptId: '—',
+  createdAt: new Date().toISOString(),
+}
 
 const initialForm: WarrantyFormState = {
   customerName: '',
@@ -97,17 +105,19 @@ export function WarrantiesPrintPage() {
   const [errors, setErrors] = useState<WarrantyFormErrors>({})
   const [saving, setSaving] = useState(false)
   const [savedReceipt, setSavedReceipt] = useState<string>('')
-  const [savedPrintForm, setSavedPrintForm] = useState<WarrantyFormState | null>(null)
+  const [savedPrintPayload, setSavedPrintPayload] = useState<WarrantyPrintPayload | null>(null)
   const [error, setError] = useState('')
 
-  const printForm = savedPrintForm ?? form
+  useEffect(() => {
+    const payload = readWarrantyPrintPayload()
+    if (payload) {
+      setSavedReceipt(payload.receiptId)
+      setSavedPrintPayload(payload)
+    }
+  }, [])
 
-  const receiptCode = useMemo(() => {
-    if (!printForm.customerPhone.trim()) return '—'
-    return getReceiptCode({ customer_phone: printForm.customerPhone, serial_number: printForm.serialNumber } as { customer_phone: string })
-  }, [printForm.customerPhone, printForm.serialNumber])
-
-  const canReprint = Boolean(savedPrintForm)
+  const previewPayload = savedPrintPayload ?? emptyPrintPayload
+  const showPrintHint = !savedPrintPayload
 
   const warrantyMonths = useMemo(() => {
     if (!form.startDate || !form.endDate) return 1
@@ -130,9 +140,11 @@ export function WarrantiesPrintPage() {
   }
 
   const printWarranty = () => {
-    if (!savedPrintForm) return
+    if (!savedPrintPayload) return
     window.print()
   }
+
+  const receiptCode = savedPrintPayload ? `BH-${savedPrintPayload.receiptId.replace(/\s+/g, '').slice(-6).toUpperCase()}` : 'BH-000000'
 
   const submitAndPrint = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -146,7 +158,6 @@ export function WarrantiesPrintPage() {
       serialNumber: validateField('serialNumber', form.serialNumber, form),
       startDate: validateField('startDate', form.startDate, form),
       endDate: validateField('endDate', form.endDate, form),
-      notes: '',
     }
     setErrors(nextErrors)
 
@@ -159,24 +170,25 @@ export function WarrantiesPrintPage() {
     try {
       setSaving(true)
       setError('')
-      const printFormState = { ...form }
       const result = await createWarrantySale({
         customer: {
-          name: printFormState.customerName.trim(),
-          phone: printFormState.customerPhone.trim(),
-          address: printFormState.customerAddress.trim() || '',
+          name: form.customerName.trim(),
+          phone: form.customerPhone.trim(),
+          address: form.customerAddress.trim() || '',
         },
-        piano_name: printFormState.pianoName.trim(),
-        serial_number: printFormState.serialNumber.trim(),
-        sale_date: printFormState.startDate,
+        piano_name: form.pianoName.trim(),
+        serial_number: form.serialNumber.trim() || null,
+        sale_date: form.startDate,
         warranty_months: warrantyMonths,
-        notes: printFormState.notes.trim() || null,
+        notes: form.notes.trim() || null,
       })
+      const payload = createWarrantyPrintPayload(result.id, form)
+      saveWarrantyPrintPayload(payload)
       setSavedReceipt(result.id)
-      setSavedPrintForm(printFormState)
+      setSavedPrintPayload(payload)
       setForm(initialForm)
       setErrors({})
-      document.title = getWarrantyPrintTitle(result)
+      document.title = getWarrantyPrintTitle({ receipt_id: result.id })
       window.print()
     } catch (err) {
       if (err instanceof ApiError) {
@@ -197,11 +209,6 @@ export function WarrantiesPrintPage() {
         title="Tạo phiếu bảo hành"
         actions={
           <div className="warranty-page-actions">
-            {savedPrintForm && (
-              <button type="button" className="secondary-button print-hide" onClick={printWarranty}>
-                In lại phiếu
-              </button>
-            )}
             <button type="submit" form="warranty-create-form" className="primary-button print-hide" disabled={saving}>
               {saving ? 'Đang lưu...' : 'Lưu và in phiếu'}
             </button>
@@ -262,146 +269,16 @@ export function WarrantiesPrintPage() {
         </form>
 
         <section className="warranty-preview-panel">
+          <div className="warranty-preview-toolbar">
+            <span className="warranty-preview-label">Xem trước phiếu</span>
+            {showPrintHint ? (
+              <span className="warranty-preview-hint">Nhập xong thông tin rồi bấm “Lưu và in phiếu” để mở hộp thoại in.</span>
+            ) : (
+              <span className="warranty-preview-hint">Trên điện thoại bạn có thể cuộn ngang để xem đủ phiếu.</span>
+            )}
+          </div>
           <div className="warranty-preview-scroll">
-            <div className="warranty-print-document">
-              <header className="warranty-print-header">
-                <div className="warranty-print-brand">
-                  <img className="warranty-print-logo-image" src={logoImage} alt="Logo Piano Solna" />
-                </div>
-                <div className="warranty-print-shopinfo">
-                  <div className="warranty-print-shopname">{SHOP_TITLE}</div>
-                  <div className="warranty-print-location-label">Trụ sở chính / Kho TP.HCM:</div>
-                  <div className="warranty-print-address">{SHOP_ADDRESS}</div>
-                  <div className="warranty-print-phones">{SHOP_PHONES.map((phone) => <span key={phone}>{phone}</span>)}</div>
-                </div>
-                <div className="warranty-print-header-spacer" />
-              </header>
-              <div className="warranty-print-header-line" />
-              <div className="warranty-print-title-wrap">
-                <div className="warranty-print-main-title">
-                  <h1>
-                    PHIẾU <span>BẢO HÀNH</span>
-                  </h1>
-                  <div className="warranty-print-ornament">
-                    <span />
-                    <b>●</b>
-                    <b>●</b>
-                    <b>●</b>
-                    <span />
-                  </div>
-                </div>
-                <div className="warranty-print-code">
-                  <span>Mã phiếu:</span>
-                  <strong>{receiptCode}</strong>
-                </div>
-              </div>
-
-              <section className="warranty-print-section warranty-print-section-grid">
-                <div className="warranty-print-section-title">
-                  <span>1</span>
-                  <strong>THÔNG TIN KHÁCH HÀNG</strong>
-                </div>
-                <table className="warranty-print-table warranty-print-table-tight">
-                  <tbody>
-                    <tr>
-                      <th>Họ tên khách hàng</th>
-                      <td>{savedPrintForm?.customerName || form.customerName || ' '}</td>
-                    </tr>
-                    <tr>
-                      <th>Số điện thoại</th>
-                      <td>{savedPrintForm?.customerPhone || form.customerPhone || ' '}</td>
-                    </tr>
-                    <tr>
-                      <th>Địa chỉ</th>
-                      <td>{printLabel(savedPrintForm?.customerAddress || form.customerAddress) || ' '}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-
-              <section className="warranty-print-section warranty-print-section-grid">
-                <div className="warranty-print-section-title">
-                  <span>2</span>
-                  <strong>THÔNG TIN SẢN PHẨM</strong>
-                </div>
-                <table className="warranty-print-table warranty-print-table-tight">
-                  <tbody>
-                    <tr>
-                      <th>Sản phẩm</th>
-                      <td>{savedPrintForm?.pianoName || form.pianoName || ' '}</td>
-                    </tr>
-                    <tr>
-                      <th>Serial</th>
-                      <td>{printLabel(savedPrintForm?.serialNumber || form.serialNumber) || ' '}</td>
-                    </tr>
-                    <tr>
-                      <th>Bắt đầu</th>
-                      <td>{(savedPrintForm?.startDate || form.startDate) ? fmtDate(savedPrintForm?.startDate || form.startDate) : ' '}</td>
-                    </tr>
-                    <tr>
-                      <th>Kết thúc</th>
-                      <td>{(savedPrintForm?.endDate || form.endDate) ? fmtDate(savedPrintForm?.endDate || form.endDate) : ' '}</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </section>
-
-              <section className="warranty-print-section warranty-print-text-section warranty-print-section-grid">
-                <div className="warranty-print-section-title">
-                  <span>3</span>
-                  <strong>GHI CHÚ</strong>
-                </div>
-                <div className="warranty-print-notes-box warranty-print-notes-box-tight">
-                  <div className="warranty-print-notes-content">{savedPrintForm?.notes || form.notes || ' '}</div>
-                  <div className="warranty-print-notes-lines" aria-hidden="true">
-                    <span />
-                    <span />
-                    <span />
-                  </div>
-                </div>
-              </section>
-
-              <div className="warranty-print-footer-note">TP. Hồ Chí Minh, ngày {formatPrintDate(new Date())}</div>
-              <footer className="warranty-print-signatures">
-                <div className="warranty-print-policy-block">
-                  <div className="warranty-print-policy-title">CHÍNH SÁCH BẢO HÀNH</div>
-                  <div className="warranty-print-policy-text">
-                    {buildWarrantyNotes()
-                      .split('\n')
-                      .map((line, index) => {
-                        const isSectionTitle = /^\d+\.\s/.test(line)
-                        const isBullet = line.startsWith('- ')
-
-                        return (
-                          <p
-                            key={`${index}-${line}`}
-                            className={isSectionTitle ? 'is-section-title' : isBullet ? 'is-bullet' : 'is-intro'}
-                          >
-                            {isBullet ? line.slice(2) : line}
-                          </p>
-                        )
-                      })}
-                  </div>
-                </div>
-                <div className="warranty-print-shop-signature">
-                  <strong>ĐẠI DIỆN CỬA HÀNG</strong>
-                  <span>(Ký và ghi rõ họ tên)</span>
-                  <div className="warranty-print-shop-signature-area">
-                    <div className="warranty-print-stamp">
-                      <div className="warranty-print-stamp-ring">
-                        <small>PIANO SOLNA</small>
-                        <div>
-                          PIANO
-                          <br />
-                          SOLNA
-                        </div>
-                      </div>
-                    </div>
-                    <div className="warranty-print-signature-writing">Piano Solna</div>
-                  </div>
-                </div>
-              </footer>
-            </div>
+            <WarrantyPrintDocument payload={previewPayload} />
           </div>
         </section>
       </div>

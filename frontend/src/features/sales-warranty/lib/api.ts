@@ -9,7 +9,7 @@ export interface WarrantyCustomerInput {
 export interface WarrantyCreateRequest {
   customer: WarrantyCustomerInput
   piano_name: string
-  serial_number: string
+  serial_number: string | null
   sale_date: string
   warranty_months: number
   notes: string | null

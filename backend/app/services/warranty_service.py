@@ -74,10 +74,11 @@ class WarrantyService:
         self.db.flush()
         return entity
 
-    def _resolve_or_create_piano(self, piano_name: str, serial_number: str) -> Piano:
-        piano = self.pianos.get_by_serial(serial_number)
-        if piano:
-            return piano
+    def _resolve_or_create_piano(self, piano_name: str, serial_number: str | None) -> Piano:
+        if serial_number:
+            piano = self.pianos.get_by_serial(serial_number)
+            if piano:
+                return piano
 
         brand, model = self._split_piano_name(piano_name)
         piano = Piano(

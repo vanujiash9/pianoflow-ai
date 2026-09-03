@@ -26,15 +26,15 @@ export function printLabel(value: string | null | undefined): string {
 }
 
 interface WarrantyPrintItem {
-  customer_phone: string
+  receipt_id: string
 }
 
 export function getReceiptCode(item: WarrantyPrintItem): string {
-  const phoneTail = item.customer_phone.replace(/\D/g, '').slice(-3).padStart(3, '0')
-  return `BH-${phoneTail}`
+  const suffix = item.receipt_id.replace(/\s+/g, '').slice(-6).toUpperCase()
+  return suffix ? `BH-${suffix}` : 'BH-000000'
 }
 
 export function getWarrantyPrintTitle(item: WarrantyPrintItem): string {
-  const phoneTail = item.customer_phone.replace(/\D/g, '').slice(-3).padStart(3, '0')
-  return `PhieuBaoHanh_${phoneTail}`
+  const suffix = item.receipt_id.replace(/\s+/g, '').slice(-6).toUpperCase()
+  return suffix ? `PhieuBaoHanh_${suffix}` : 'PhieuBaoHanh'
 }

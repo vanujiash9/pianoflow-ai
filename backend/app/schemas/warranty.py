@@ -13,7 +13,7 @@ from app.schemas.customer import CustomerInput
 class WarrantyCreate(StrictModel):
     customer: CustomerInput
     piano_name: str = Field(min_length=1, max_length=255)
-    serial_number: str = Field(min_length=1, max_length=120)
+    serial_number: str | None = Field(default=None, max_length=120)
     sale_date: date
     warranty_months: int = Field(default=12, ge=1, le=120)
     notes: str | None = None
@@ -29,7 +29,10 @@ class WarrantyCreate(StrictModel):
     @classmethod
     def normalize_serial(cls, value: object) -> object:
         if value is None or isinstance(value, str):
-            return value.strip().upper() if isinstance(value, str) else value
+            if not isinstance(value, str):
+                return value
+            cleaned = value.strip().upper()
+            return cleaned or None
         return value
 
     @field_validator("sale_date")
