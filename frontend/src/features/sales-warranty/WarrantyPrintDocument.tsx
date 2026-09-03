@@ -1,3 +1,5 @@
+import { forwardRef } from 'react'
+
 import logoImage from '../../../img/logo.jpg'
 
 import { buildWarrantyNotes } from './lib/api'
@@ -8,9 +10,9 @@ interface WarrantyPrintDocumentProps {
   payload: WarrantyPrintPayload
 }
 
-export function WarrantyPrintDocument({ payload }: WarrantyPrintDocumentProps) {
+export const WarrantyPrintDocument = forwardRef<HTMLDivElement, WarrantyPrintDocumentProps>(function WarrantyPrintDocument({ payload }, ref) {
   return (
-    <div className="warranty-print-document">
+    <div className="warranty-print-document" ref={ref}>
       <header className="warranty-print-header">
         <div className="warranty-print-brand">
           <img className="warranty-print-logo-image" src={logoImage} alt="Logo Piano Solna" />
@@ -147,4 +149,4 @@ export function WarrantyPrintDocument({ payload }: WarrantyPrintDocumentProps) {
       </footer>
     </div>
   )
-}
+})

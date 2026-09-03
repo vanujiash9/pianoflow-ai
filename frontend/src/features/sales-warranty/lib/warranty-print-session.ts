@@ -5,7 +5,7 @@ export interface WarrantyPrintPayload {
   customerPhone: string
   customerAddress: string
   pianoName: string
-  serialNumber: string
+  serialNumber: string | null
   startDate: string
   endDate: string
   notes: string

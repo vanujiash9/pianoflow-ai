@@ -1,4 +1,7 @@
-import { type FormEvent, useEffect, useMemo, useState } from 'react'
+import { type FormEvent, useEffect, useMemo, useRef, useState } from 'react'
+
+import html2canvas from 'html2canvas'
+import { jsPDF } from 'jspdf'
 
 import { PageHeader } from '../../components/ui/PageHeader'
 import { ApiError } from '../../lib/api'
@@ -59,6 +62,20 @@ function isTenDigitPhone(value: string) {
   return /^\d{10}$/.test(value)
 }
 
+async function waitForWarrantyAssets(): Promise<void> {
+  await Promise.all(
+    Array.from(document.images)
+      .filter((image) => image.closest('.warranty-print-document') !== null)
+      .map(async (image) => {
+        if (image.complete) return
+        await new Promise<void>((resolve) => {
+          image.onload = () => resolve()
+          image.onerror = () => resolve()
+        })
+      }),
+  )
+}
+
 function validateField(name: keyof WarrantyFormState, value: string, form: WarrantyFormState): string {
   const trimmed = value.trim()
 
@@ -107,6 +124,8 @@ export function WarrantiesPrintPage() {
   const [savedReceipt, setSavedReceipt] = useState<string>('')
   const [savedPrintPayload, setSavedPrintPayload] = useState<WarrantyPrintPayload | null>(null)
   const [error, setError] = useState('')
+  const printDocumentRef = useRef<HTMLDivElement | null>(null)
+  const pdfDownloadLockRef = useRef(false)
 
   useEffect(() => {
     const payload = readWarrantyPrintPayload()
@@ -118,6 +137,7 @@ export function WarrantiesPrintPage() {
 
   const previewPayload = savedPrintPayload ?? emptyPrintPayload
   const showPrintHint = !savedPrintPayload
+  const canReprint = Boolean(savedPrintPayload)
 
   const warrantyMonths = useMemo(() => {
     if (!form.startDate || !form.endDate) return 1
@@ -139,9 +159,33 @@ export function WarrantiesPrintPage() {
     })
   }
 
-  const printWarranty = () => {
-    if (!savedPrintPayload) return
-    window.print()
+  const downloadWarrantyPdf = async (payload: WarrantyPrintPayload) => {
+    if (pdfDownloadLockRef.current) return
+    const documentNode = printDocumentRef.current
+    if (!documentNode) return
+
+    pdfDownloadLockRef.current = true
+    try {
+      await waitForWarrantyAssets()
+      const canvas = await html2canvas(documentNode, {
+        scale: Math.max(window.devicePixelRatio || 1, 2),
+        useCORS: true,
+        backgroundColor: '#ffffff',
+      })
+      const imageData = canvas.toDataURL('image/png')
+      const pdf = new jsPDF('p', 'mm', 'a4')
+      const pageWidth = pdf.internal.pageSize.getWidth()
+      const pageHeight = pdf.internal.pageSize.getHeight()
+      const imgWidth = pageWidth
+      const imgHeight = (canvas.height * imgWidth) / canvas.width
+      const imgX = 0
+      const imgY = Math.max((pageHeight - imgHeight) / 2, 0)
+
+      pdf.addImage(imageData, 'PNG', imgX, imgY, imgWidth, imgHeight, undefined, 'FAST')
+      pdf.save(`PhieuBaoHanh_${payload.receiptId.replace(/\s+/g, '').slice(-6).toUpperCase()}.pdf`)
+    } finally {
+      pdfDownloadLockRef.current = false
+    }
   }
 
   const receiptCode = savedPrintPayload ? `BH-${savedPrintPayload.receiptId.replace(/\s+/g, '').slice(-6).toUpperCase()}` : 'BH-000000'
@@ -189,6 +233,7 @@ export function WarrantiesPrintPage() {
       setForm(initialForm)
       setErrors({})
       document.title = getWarrantyPrintTitle({ receipt_id: result.id })
+      await downloadWarrantyPdf(payload)
       window.print()
     } catch (err) {
       if (err instanceof ApiError) {
@@ -278,7 +323,7 @@ export function WarrantiesPrintPage() {
             )}
           </div>
           <div className="warranty-preview-scroll">
-            <WarrantyPrintDocument payload={previewPayload} />
+            <WarrantyPrintDocument ref={printDocumentRef} payload={previewPayload} />
           </div>
         </section>
       </div>

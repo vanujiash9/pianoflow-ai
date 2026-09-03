@@ -1,2 +1,4 @@
+allowBuilds:
+  core-js: set this to true or false
 minimumReleaseAgeExclude:
   - lucide-react@1.31.0
